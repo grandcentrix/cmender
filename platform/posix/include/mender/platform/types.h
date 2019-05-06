@@ -26,4 +26,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+// newlib unconditionally defines macros like MIN
+// include their header here so it comes before our compiler.h
+#include <sys/param.h>
+
 #endif /* MENDER_PLATFORM_TYPES_H */
