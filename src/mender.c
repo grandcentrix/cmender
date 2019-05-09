@@ -135,16 +135,18 @@ void mender_authorize(struct mender *mender, mender_on_result_t cb, void *cbctx)
         return;
     }
 
+    mender->auth_cb = cb;
+    mender->auth_cbctx = cbctx;
+
     merr = mender_client_auth_request(&mender->client_auth,
         mender->server_url, client_auth_cb, mender);
     if (merr) {
         LOGE("authorization request failed: %08x", merr);
+        mender->auth_cb = NULL;
+        mender->auth_cbctx = NULL;
         cb(cbctx, merr);
         return;
     }
-
-    mender->auth_cb = cb;
-    mender->auth_cbctx = cbctx;
 }
 
 mender_err_t mender_get_current_artifact_name(struct mender *mender, const char **pname) {
