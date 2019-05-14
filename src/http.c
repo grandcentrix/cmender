@@ -310,7 +310,7 @@ mender_err_t mender_http_client_begin(struct mender_http_client *c, enum mender_
     mender_err_t merr;
 
     if (c->state != MENDER_HTTP_STATE_INITIALIZED) {
-        LOGD("http client is still running a request");
+        LOGE("http client is still running a request");
         return MERR_BUSY;
     }
 
@@ -337,7 +337,7 @@ mender_err_t mender_http_client_begin(struct mender_http_client *c, enum mender_
     /* parse url */
     rc = http_parser_parse_url(url, strlen(url), 0, &c->purl);
     if (rc) {
-        LOGD("can't parse url: %s", url);
+        LOGE("can't parse url: %s", url);
         return MERR_INVALID_ARGUMENTS;
     }
 
@@ -359,7 +359,7 @@ mender_err_t mender_http_client_begin(struct mender_http_client *c, enum mender_
             port = 443;
         }
         else {
-            LOGD("unsupported schema: %s", schema);
+            LOGE("unsupported schema: %s", schema);
             mender_httpbuf_give(c, schema, nbytes);
             return MERR_INVALID_ARGUMENTS;
         }
@@ -371,7 +371,7 @@ mender_err_t mender_http_client_begin(struct mender_http_client *c, enum mender_
     }
 
     if (!c->transport_active) {
-        LOGD("no valid transport found");
+        LOGE("no valid transport found");
         return MERR_NO_HTTP_TRANSPORT;
     }
 
@@ -383,7 +383,7 @@ mender_err_t mender_http_client_begin(struct mender_http_client *c, enum mender_
     /* get 0-terminated copy of host */
     host = mender_httpbuf_current(c);
     if (!c->purl.field_data[UF_HOST].len) {
-        LOGD("URL has no host");
+        LOGE("URL has no host");
         return MERR_INVALID_ARGUMENTS;
     }
     merr = url_copy_to_buf(c, url, &c->purl, UF_HOST, &nbytes);
