@@ -86,13 +86,13 @@ static void client_auth_cb(void *ctx, mender_err_t auth_err, void *buf, size_t l
             }
         }
 
-        LOGE("authorization request failed");
+        LOGE("authorization request failed: %08x", auth_err);
         merr = auth_err;
     }
     else {
         merr = mender_authmgr_set_token(authmgr, buf, len);
         if (merr) {
-            LOGE("failed to parse authorization response");
+            LOGE("failed to parse authorization response: %08x", merr);
         }
         else {
             LOGI("successfuly received new authorization data");
@@ -138,7 +138,7 @@ void mender_authorize(struct mender *mender, mender_on_result_t cb, void *cbctx)
     merr = mender_client_auth_request(&mender->client_auth,
         mender->server_url, client_auth_cb, mender);
     if (merr) {
-        LOGE("authorization request failed");
+        LOGE("authorization request failed: %08x", merr);
         cb(cbctx, merr);
         return;
     }
@@ -314,7 +314,7 @@ static mender_err_t mender_fetchupdate_on_init_success(void *ctx) {
 
     merr = mender_installer_begin(&mender->installer, mender->new_artifact_name);
     if (merr) {
-        LOGE("Can't begin installation");
+        LOGE("Can't begin installation: %08x", merr);
         return merr;
     }
 
@@ -333,7 +333,7 @@ static void mender_fetchupdate_on_finish(void *ctx, mender_err_t err) {
 
     merr = mender_installer_finish(&mender->installer);
     if (merr) {
-        LOGE("Can't finish installation");
+        LOGE("Can't finish installation: %08x", merr);
         cbret = merr;
         goto do_callback;
     }
@@ -361,7 +361,7 @@ static mender_err_t mender_fetchupdate_on_data(void *ctx, const void *data, size
 
     merr = mender_installer_process_data(&mender->installer, data, len);
     if (merr) {
-        LOGE("Can't process installation data");
+        LOGE("Can't process installation data: %08x", merr);
         return merr;
     }
 
@@ -381,7 +381,7 @@ void mender_fetch_update(struct mender *mender, const char *url, const char *art
     merr = mender_client_update_fetch(&mender->client_update, url, mender_get_retry_poll_interval(mender),
         &mender->fetch_update_cb, mender);
     if (merr) {
-        LOGE("update fetch failed");
+        LOGE("update fetch failed: %08x", merr);
         cb(cbctx, merr);
         return;
     }
@@ -626,7 +626,7 @@ static void inventory_refresh_do_send(struct mender *mender) {
     merr = mender_client_inventory_submit(&mender->client_inventory,
         mender->server_url, buf, nbytes, mender_inventory_refresh_cb, mender);
     if (merr) {
-        LOGE("inventory submission failed");
+        LOGE("inventory submission failed: %08x", merr);
         mender_inventory_refresh_cb(mender, merr);
         return;
     }
