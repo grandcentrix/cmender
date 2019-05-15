@@ -19,19 +19,29 @@
 
 #include <mender/keystore.h>
 #include <mender/store.h>
+
+#ifdef CONFIG_MENDER_PLATFORM_KEYSTORE_ED25519
+#include <sodium.h>
+#else
 #include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/pk.h>
 #include <mbedtls/md.h>
 #include <mbedtls/rsa.h>
+#endif
 
 struct mender_keystore {
     const char *path;
 
     int has_key;
+
+#ifdef CONFIG_MENDER_PLATFORM_KEYSTORE_ED25519
+    unsigned char sk[crypto_sign_ed25519_SECRETKEYBYTES];
+#else
     mbedtls_pk_context key;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
+#endif
 };
 
 mender_err_t mender_platform_keystore_create(struct mender_keystore *keystore,

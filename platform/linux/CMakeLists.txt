@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(mender_platform C)
 
+option(PLATFORM_KEYSTORE_ED25519 "use ed25519 keys" OFF)
+
 # platform
 add_library(mender_platform
     ../posix/eventloop.c
@@ -12,7 +14,7 @@ add_library(mender_platform
     identity_data.c
     inventory_data.c
     store.c
-    keystore.c
+    keystore$<$<BOOL:${PLATFORM_KEYSTORE_ED25519}>:-ed25519>.c
     device.c
 )
 
@@ -25,6 +27,7 @@ target_link_libraries(mender_platform
     mbedtls
     mbedcrypto
     mbedx509
+    $<$<BOOL:${PLATFORM_KEYSTORE_ED25519}>:sodium>
 )
 target_include_directories(mender_platform INTERFACE
     ../posix/include
@@ -33,4 +36,7 @@ target_include_directories(mender_platform INTERFACE
 target_include_directories(mender_platform PRIVATE
     ../posix/include
     include
+)
+target_compile_definitions(mender_platform PUBLIC
+    $<$<BOOL:${PLATFORM_KEYSTORE_ED25519}>:CONFIG_MENDER_PLATFORM_KEYSTORE_ED25519>
 )
