@@ -28,5 +28,6 @@ mender_err_t mender_keystore_generate(struct mender_keystore *ks);
 mender_err_t mender_keystore_sign(struct mender_keystore *ks, const void *data, size_t datasize,
         char *sign, size_t maxsignsz, size_t *pactual);
 mender_err_t mender_keystore_get_public_pem(struct mender_keystore *ks, char *pem, size_t maxpemsize, size_t *pactual);
+mender_err_t mender_keystore_get_keytype(struct mender_keystore *ks, const char **ptype);
 
 #endif /* MENDER_KEYSTORE_H */

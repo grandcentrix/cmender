@@ -226,3 +226,8 @@ mender_err_t mender_platform_keystore_create(struct mender_keystore *ks,
 
     return MERR_NONE;
 }
+
+mender_err_t mender_keystore_get_keytype(struct mender_keystore *ks __unused, const char **ptype) {
+    *ptype = NULL;
+    return MERR_NONE;
+}
