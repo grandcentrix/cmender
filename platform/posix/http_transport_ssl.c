@@ -25,6 +25,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "lwip_fixup.h"
+
 static const char *ssl_client_pers = "mender_ssl_client";
 
 #define to_ssl(s) containerof((s), struct mender_http_transport_ssl, t)

@@ -25,6 +25,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "lwip_fixup.h"
+
 #define to_tcp(s) containerof((s), struct mender_http_transport_tcp, t)
 
 static void tcp_fail(struct mender_http_transport_tcp *tcp, mender_err_t err) {
