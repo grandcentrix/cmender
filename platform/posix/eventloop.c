@@ -20,7 +20,7 @@
 #include <mender/internal/list.h>
 #include <errno.h>
 #include <sys/socket.h>
-#include <sys/select.h>
+#include <unistd.h>
 
 void mender_eventloop_create(struct mender_platform_eventloop *el) {
     mender_list_initialize(&el->list_fds);
