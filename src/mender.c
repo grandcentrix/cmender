@@ -379,17 +379,19 @@ void mender_fetch_update(struct mender *mender, const char *url, const char *art
         return;
     }
 
+    mender->cb = cb;
+    mender->cbctx = cbctx;
+
     mender->new_artifact_name = artifact_name;
     merr = mender_client_update_fetch(&mender->client_update, url, mender_get_retry_poll_interval(mender),
         &mender->fetch_update_cb, mender);
     if (merr) {
         LOGE("update fetch failed: %08x", merr);
+        mender->cb = NULL;
+        mender->cbctx = NULL;
         cb(cbctx, merr);
         return;
     }
-
-    mender->cb = cb;
-    mender->cbctx = cbctx;
 }
 
 static void mender_client_status_cb(void *ctx, mender_err_t err);
