@@ -372,6 +372,9 @@ static mender_err_t transport_close(struct mender_http_transport *t) {
         mbedtls_entropy_free(&ssl->entropy);
         ssl->eventloop_slot.fd = -1;
         ssl->state = MENDER_HTTP_TRANSPORT_SSL_STATE_READY;
+
+        ssl->write_buf = NULL;
+        ssl->write_len = 0;
     }
     else {
         LOGW("transport was already closed");

@@ -250,6 +250,9 @@ static mender_err_t transport_close(struct mender_http_transport *t) {
         tcp->eventloop_slot.fd = -1;
         tcp->state = MENDER_HTTP_TRANSPORT_TCP_STATE_READY;
 
+        tcp->write_buf = NULL;
+        tcp->write_len = 0;
+
         if (rc)
             return MERR_UNKNOWN;
     }
