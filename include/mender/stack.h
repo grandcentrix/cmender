@@ -26,6 +26,11 @@ struct mender_stack {
     size_t offset;
 };
 
+struct mender_alignedstack_ctx {
+    void *mem;
+    size_t n;
+};
+
 void mender_stack_create(struct mender_stack *stack, void *buf, size_t size);
 
 void* mender_stack_take(struct mender_stack *stack, size_t n);
@@ -59,5 +64,9 @@ static inline void* mender_stack_base(struct mender_stack *stack) {
 static inline int mender_stack_give_all(struct mender_stack *stack) {
     return mender_stack_give(stack, mender_stack_base(stack), mender_stack_num_used(stack));
 }
+
+void* mender_alignedstack_take(struct mender_alignedstack_ctx *ctx, struct mender_stack *stack, size_t n, size_t align);
+size_t mender_alignedstack_num_free(struct mender_stack *stack, size_t align);
+int mender_alignedstack_give(struct mender_alignedstack_ctx *ctx, struct mender_stack *stack);
 
 #endif /* MENDER_STACK_H */

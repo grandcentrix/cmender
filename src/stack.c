@@ -58,6 +58,36 @@ int mender_stack_give(struct mender_stack *stack, void *p, size_t n) {
     return 0;
 }
 
+static inline size_t mender_alignedstack_calc_offset(struct mender_stack *stack, size_t align) {
+    return ROUNDUP(stack->offset, align) - stack->offset;
+}
+
+void* mender_alignedstack_take(struct mender_alignedstack_ctx *ctx, struct mender_stack *stack, size_t n, size_t align) {
+    size_t offset;
+    size_t n_actual;
+    void *mem;
+
+    offset = mender_alignedstack_calc_offset(stack, align);
+    n_actual = n + offset;
+
+    mem = mender_stack_take(stack, n_actual);
+    if (!mem)
+        return NULL;
+
+    ctx->mem = mem;
+    ctx->n = n_actual;
+
+    return mem + offset;
+}
+
+size_t mender_alignedstack_num_free(struct mender_stack *stack, size_t align) {
+    return mender_stack_num_free(stack) - mender_alignedstack_calc_offset(stack, align);
+}
+
+int mender_alignedstack_give(struct mender_alignedstack_ctx *ctx, struct mender_stack *stack) {
+    return mender_stack_give(stack, ctx->mem, ctx->n);
+}
+
 #ifdef MENDER_ENABLE_TESTING
 #include "../tests/stack.c"
 #endif
