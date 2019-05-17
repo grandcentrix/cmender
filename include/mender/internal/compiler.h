@@ -42,6 +42,10 @@
 #define ROUNDUP(a, b) (((a) + ((b)-1)) & ~((b)-1))
 #endif
 
+#ifndef ROUNDDOWN
+#define ROUNDDOWN(a, b) ((a) & ~((b)-1))
+#endif
+
 #ifndef SSIZE_MAX
 #define SSIZE_MAX (SIZE_MAX / 2 - 1)
 #endif
