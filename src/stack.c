@@ -28,8 +28,10 @@ void mender_stack_create(struct mender_stack *stack, void *buf, size_t size) {
 void* mender_stack_take(struct mender_stack *stack, size_t n) {
     void *p;
 
-    if (n > mender_stack_num_free(stack))
+    if (n > mender_stack_num_free(stack)) {
+        LOGE("OOM: have:%zu need:%zu", mender_stack_num_free(stack), n);
         return NULL;
+    }
 
     p = &stack->b[stack->offset];
     stack->offset += n;
