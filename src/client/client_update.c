@@ -280,6 +280,7 @@ static void closed(void *ctx, struct mender_http_client *c,
     size_t json_len;
     jsmn_parser p;
     size_t maxtokens;
+    struct mender_alignedstack_ctx tokens_ctx;
     jsmntok_t *tokens = NULL;
     int ntokens = 0;
 
@@ -324,8 +325,8 @@ static void closed(void *ctx, struct mender_http_client *c,
 
     jsmn_init(&p);
 
-    maxtokens = mender_httpbuf_num_free(c)/sizeof(jsmntok_t);
-    tokens = mender_httpbuf_take(c, maxtokens * sizeof(jsmntok_t));
+    maxtokens = mender_alignedstack_num_free(c->stack, 4)/sizeof(jsmntok_t);
+    tokens = mender_alignedstack_take(&tokens_ctx, c->stack, maxtokens * sizeof(jsmntok_t), 4);
     if (!tokens) {
         LOGD("not enough stack space for json tokens");
         cbret = MERR_OUT_OF_RESOURCES;
@@ -384,7 +385,7 @@ static void closed(void *ctx, struct mender_http_client *c,
 
 do_callback:
     if (tokens) {
-        mender_httpbuf_give(c, tokens, maxtokens * sizeof(jsmntok_t));
+        mender_alignedstack_give(&tokens_ctx, c->stack);
     }
 
     if (json) {
