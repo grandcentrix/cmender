@@ -195,8 +195,8 @@ static void data_cb(void *ctx, int fd __unused, enum eventloop_flags flags) {
                 const void *buf = ssl->write_buf;
                 size_t len = ssl->write_len;
 
-                buf = NULL;
-                len = 0;
+                ssl->write_buf = NULL;
+                ssl->write_len = 0;
 
                 ssl->t.write(&ssl->t, buf, len);
             }

@@ -97,8 +97,8 @@ static void data_cb(void *ctx, int fd __unused, enum eventloop_flags flags) {
                 const void *buf = tcp->write_buf;
                 size_t len = tcp->write_len;
 
-                buf = NULL;
-                len = 0;
+                tcp->write_buf = NULL;
+                tcp->write_len = 0;
 
                 tcp->t.write(&tcp->t, buf, len);
             }
