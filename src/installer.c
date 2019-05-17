@@ -308,8 +308,8 @@ static mender_err_t mender_installer_process_data_tar(struct mender_installer *i
                                     return MERR_OUT_OF_RESOURCES;
                                 }
 
-                                ctx->u.json.ntokens = mender_stack_num_free(i->stack)/sizeof(jsmntok_t);
-                                ctx->u.json.tokens = mender_stack_take(i->stack, ctx->u.json.ntokens * sizeof(jsmntok_t));
+                                ctx->u.json.ntokens = mender_alignedstack_num_free(i->stack, 4)/sizeof(jsmntok_t);
+                                ctx->u.json.tokens = mender_alignedstack_take(&ctx->u.json.tokens_ctx, i->stack, ctx->u.json.ntokens * sizeof(jsmntok_t), 4);
                                 if (!ctx->u.json.tokens) {
                                     LOGD("not enough stack space for json tokens");
                                     return MERR_OUT_OF_RESOURCES;
@@ -441,7 +441,7 @@ static mender_err_t mender_installer_process_data_tar(struct mender_installer *i
                             break;
 
                         case MENDER_INSTALLER_FILE_TYPE_JSON:
-                            mender_stack_give(i->stack, ctx->u.json.tokens, ctx->u.json.ntokens * sizeof(jsmntok_t));
+                            mender_alignedstack_give(&ctx->u.json.tokens_ctx, i->stack);
                             mender_stack_give(i->stack, ctx->u.json.readctx.buf, ctx->u.json.readctx.bufsz);
                             break;
 

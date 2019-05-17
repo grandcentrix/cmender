@@ -40,6 +40,7 @@ struct read_ctx {
 struct mender_json_ctx {
     jsmn_parser parser;
     struct read_ctx readctx;
+    struct mender_alignedstack_ctx tokens_ctx;
     jsmntok_t *tokens;
     size_t ntokens;
 };
