@@ -16,7 +16,9 @@
 
 #include <mender/test/common.h>
 
-static uint8_t stackbuf[4096];
+#define IS_ALIGNED(a, b) (!(((uintptr_t)(a)) & (((uintptr_t)(b))-1)))
+
+static uint8_t stackbuf[4096] __attribute__ ((aligned (4)));
 static struct mender_stack stack;
 
 static void test_stack_simple(void **state __unused) {
@@ -83,6 +85,50 @@ static void test_stack_partialgive(void **state __unused) {
     assert_ptr_equal(mender_stack_current(&stack), stackbuf);
 }
 
+static void test_stack_aligned(void **state __unused) {
+    void *b;
+    struct mender_alignedstack_ctx ctx;
+
+    // our stack must be aligned
+    assert_true(IS_ALIGNED(stackbuf, 4));
+
+    // make the offset unaligned
+    b = mender_stack_take(&stack, 1);
+    assert_ptr_equal(b, stackbuf);
+    assert_true(IS_ALIGNED(b, 4));
+
+    // just a self-check that the next take would return an unaligned buffer
+    b = mender_stack_take(&stack, 1);
+    assert_ptr_equal(b, stackbuf + 1);
+    assert_false(IS_ALIGNED(b, 4));
+    assert_int_equal(mender_stack_give(&stack, b, 1), 0);
+
+    // the alignment offset must be substracted from the actual free space
+    assert_int_equal(mender_alignedstack_num_free(&stack, 4), mender_stack_num_free(&stack) - 3);
+
+    // take aligned memory
+    b = mender_alignedstack_take(&ctx, &stack, 1, 4);
+    assert_ptr_equal(b, stackbuf + 4);
+    assert_true(IS_ALIGNED(b, 4));
+
+    // take/give normal while we have an aligned buffer
+    b = mender_stack_take(&stack, 32);
+    assert_int_equal(b, stackbuf + 4 + 1);
+    assert_int_equal(mender_stack_give(&stack, b, 32), 0);
+
+    // give back aligned memory
+    assert_int_equal(mender_alignedstack_give(&ctx, &stack), 0);
+    assert_ptr_equal(stack.offset, 1);
+
+    // take everything
+    b = mender_alignedstack_take(&ctx, &stack, mender_alignedstack_num_free(&stack, 4), 4);
+    assert_ptr_equal(b, stackbuf + 4);
+    assert_true(IS_ALIGNED(b, 4));
+
+    // and give it back
+    assert_int_equal(mender_alignedstack_give(&ctx, &stack), 0);
+}
+
 static int setup(void **state __unused) {
     mender_stack_create(&stack, stackbuf, sizeof(stackbuf));
     assert_ptr_equal(mender_stack_base(&stack), stackbuf);
@@ -103,6 +149,7 @@ static const struct CMUnitTest tests_stack[] = {
     stack_unit_test_setup(test_stack_givetoomuch),
     stack_unit_test_setup(test_stack_giveoffsetptr),
     stack_unit_test_setup(test_stack_partialgive),
+    stack_unit_test_setup(test_stack_aligned),
 };
 
 int mender_test_run_stack(void) {
