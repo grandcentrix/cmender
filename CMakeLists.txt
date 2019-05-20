@@ -14,6 +14,17 @@ set(CMAKE_MODULE_PATH "${SANITIZER_DIR}/cmake" ${CMAKE_MODULE_PATH})
 find_package(Sanitizers)
 endif()
 
+# Check for JSMN
+include(CheckIncludeFile)
+find_library(JSMN jsmn)
+add_definitions(
+    -DJSMN_STATIC
+)
+CHECK_INCLUDE_FILE("jsmn.h" HAVE_JSMN_H)
+if (NOT HAVE_JSMN_H)
+    message( FATAL_ERROR "'jsmn.h' was not found" )
+endif()
+
 # global cflags
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og -g")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Os")
@@ -85,6 +96,6 @@ endif()
 target_link_libraries(mender
     mender_platform
     http_parser
-    jsmn
+    $<$<BOOL:${JSMN}>:jsmn>
     $<$<BOOL:${ENABLE_TESTING}>:cmocka>
 )
