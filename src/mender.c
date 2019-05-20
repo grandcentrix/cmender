@@ -20,22 +20,7 @@
 
 #define MENDER_VERSION_STR "1.5.0"
 
-static bool needs_bootstrap(struct mender *mender) {
-    struct mender_authmgr *authmgr = mender->authmgr;
-
-    if (mender->force_bootstrap) {
-        return true;
-    }
-
-    if (!mender_authmgr_has_key(authmgr)) {
-        LOGD("needs keys");
-        return true;
-    }
-
-    return false;
-}
-
-static mender_err_t do_bootstrap(struct mender *mender) {
+static mender_err_t bootstrap(struct mender *mender) {
     struct mender_authmgr *authmgr = mender->authmgr;
     mender_err_t merr;
 
@@ -51,14 +36,6 @@ static mender_err_t do_bootstrap(struct mender *mender) {
 
     mender->force_bootstrap = false;
     return MERR_NONE;
-}
-
-static mender_err_t bootstrap(struct mender *mender) {
-    if (!needs_bootstrap(mender)) {
-        return MERR_NONE;
-    }
-
-    return do_bootstrap(mender);
 }
 
 /* Controller */
