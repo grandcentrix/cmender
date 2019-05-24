@@ -40,7 +40,7 @@ static struct option long_options[] =
     {"help", no_argument, NULL, 'h'},
     {"certPath", required_argument, NULL, 'c'},
     {"storePath", required_argument, NULL, 'p'},
-    {"keystorePath", required_argument, NULL, 'k'},
+    {"keyPath", required_argument, NULL, 'k'},
     {"artifactName", required_argument, NULL, 'a'},
     {"deviceType", required_argument, NULL, 'd'},
     {"serverUrl", required_argument, NULL, 's'},
@@ -53,21 +53,21 @@ static struct option long_options[] =
 
 static void print_usage(void) {
     printf("Usage:\n"
-            "--help -h\t\t\t Display this information. \n"
-            "--certPath -c <arg>\t\t Pass certificate path on as argument. \n"
-            "--storePath -p <arg>\t\t Pass store path on as argument. \n"
-            "--keystorePath -k <arg>\t\t Pass keystore path on as argument. \n"
-            "--artifactName -a <arg>\t\t Pass artifact name on as argument. \n"
-            "--deviceType -d <arg>\t\t Pass device type on as argument. \n"
-            "--serverUrl -s <arg>\t\t Pass server url on as argument. \n"
-            "--updateInterval -u <arg>\t Pass update interval on as argument. \n"
-            "--inventoryInterval -i <arg>\t Pass inventory interval on as argument. \n"
-            "--retryInterval -r <arg>\t Pass retry interval on as argument. \n"
-            "--macAddress -m <arg>\t\t Pass MAC on as argument.\n\n");
+            "--help -h\t\t\t Display this information\n"
+            "--certPath -c <arg>\t\t DER certificate\n"
+            "--storePath -p <arg>\t\t Path to the persistent storage directory\n"
+            "--key -k <arg>\t\t\t Path to the private key file of the client\n"
+            "--artifactName -a <arg>\t\t Currently installed artifact name\n"
+            "--deviceType -d <arg>\t\t Device type which will be reported to ths server\n"
+            "--serverUrl -s <arg>\t\t Mender server URL\n"
+            "--updateInterval -u <arg>\t Update interval in seconds\n"
+            "--inventoryInterval -i <arg>\t Inventory report interval in seconds\n"
+            "--retryInterval -r <arg>\t Retry interval in seconds\n"
+            "--macAddress -m <arg>\t\t MAC address to use in identity-data\n\n");
 
 
-    printf("Example_short:\n./test_tool -c ../certpath/cert.der -p ../data/menderstore -k ../data/keystore -a 1 -d TESTDEVICE -s localhost -u 10 -i 10 -r 10 -m 11:22:33:44:55:66\n\n");
-    printf("Example_long:\n./test_tool --certPath ../certpath/cert.der --storePath ../data/menderstore --keystorePath ../data/keystore --artifactName 1 --deviceType TESTDEVICE --serverUrl localhost"
+    printf("Example_short:\n./test_tool -c ../data/cert.der -p ../data/menderstore -k ../data/key.priv -a 1 -d TESTDEVICE -s localhost -u 10 -i 10 -r 10 -m 11:22:33:44:55:66\n\n");
+    printf("Example_long:\n./test_tool --certPath ../data/cert.der --storePath ../data/menderstore --key ../data/key.priv --artifactName 1 --deviceType TESTDEVICE --serverUrl localhost"
             "--updateInterval 10 --inventoryInterval 10 --retryInterval 10 --macAddress 11:22:33:44:55:66\n\n");
 }
 
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
     int option;
     char *cert_path = NULL;
     char *store_path = NULL;
-    char *keystore_path = NULL;
+    char *key_path = NULL;
     char *artifact_name = NULL;
     char *device_type = NULL;
     char *server_url = NULL;
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
                 break;
 
             case 'k':
-                keystore_path = optarg;
+                key_path = optarg;
                 break;
 
             case 'a':
@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
         }
     }
     printf ("Arguments took: \nc = %s, p = %s, k = %s, a = %s, d = %s, s = %s, u = %d, i = %d, r = %d, m = %s\n",
-            cert_path, store_path, keystore_path, artifact_name, device_type, server_url, update_interval, inventory_interval, retry_interval, mac_address);
+            cert_path, store_path, key_path, artifact_name, device_type, server_url, update_interval, inventory_interval, retry_interval, mac_address);
 
 
 
@@ -206,7 +206,7 @@ int main(int argc, char **argv) {
     merr = mender_platform_store_create(&store, store_path);
     assert(merr == 0);
 
-    merr = mender_platform_keystore_create(&keystore, keystore_path);
+    merr = mender_platform_keystore_create(&keystore, key_path);
     assert(merr == 0);
 
     mender_platform_identity_data_create(&id_data, mac_address);
