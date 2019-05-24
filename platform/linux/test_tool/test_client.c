@@ -171,47 +171,53 @@ int main(int argc, char **argv) {
         }
     }
 
-    printf("Arguments took: \nc = %s, p = %s, k = %s, a = %s, d = %s, s = %s, u = %d, i = %d, r = %d, m = %s\n",
-            cert_path, store_path, key_path, artifact_name, device_type, server_url, update_interval, inventory_interval, retry_interval, mac_address);
-
-    mender_stack_create(&stack, stack_buf, sizeof(stack_buf));
-
     fd = open(cert_path, O_RDONLY);
     if (fd < 0) {
-        fprintf(stderr, "Error:\nCan not open %s : %s \n", cert_path, strerror(errno));
+        LOGE("Error: Can not open %s: %s", cert_path, strerror(errno));
         return -1;
     }
 
     rc = fstat(fd, &sb);
-    assert(rc == 0);
+    if (rc) {
+        LOGE("Error: fstat failed: %s", strerror(errno));
+        return -1;
+    }
 
     der = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    assert(der);
+    if (der == MAP_FAILED) {
+        LOGE("Error: mmap failed: %s", strerror(errno));
+        return -1;
+    }
 
+    mender_stack_create(&stack, stack_buf, sizeof(stack_buf));
     mender_eventloop_create(&eventloop);
-
     mender_http_transport_tcp_create(&tcp, &eventloop);
     mender_http_transport_ssl_create(&ssl, &eventloop, der, sb.st_size);
 
     merr = mender_http_client_create(&client, &stack, &tcp.t, &ssl.t);
-    assert(merr == 0);
+    if (merr) {
+        LOGE("can't create http client: %08x", merr);
+        return -1;
+    }
 
     merr = mender_platform_store_create(&store, store_path);
-    assert(merr == 0);
+    if (merr) {
+        LOGE("can't create store: %08x", merr);
+        return -1;
+    }
 
     merr = mender_platform_keystore_create(&keystore, key_path);
-    assert(merr == 0);
+    if (merr) {
+        LOGE("can't create keystore: %08x", merr);
+        return -1;
+    }
 
     mender_platform_identity_data_create(&id_data, mac_address);
     mender_platform_inventory_data_create(&iv_data);
-
     mender_authmgr_create(&authmgr, &store, &keystore, &id_data);
-
     mender_platform_device_create(&dev, &store);
-
     mender_create(&mender, &store, &authmgr, &stack, &client, &dev, &iv_data,
         artifact_name, device_type, server_url, update_interval, inventory_interval, retry_interval);
-
     mender_statemachine_create(&statemachine, &store, &mender);
 
     memset(&loop, 0, sizeof(loop));
