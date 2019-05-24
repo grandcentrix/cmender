@@ -16,7 +16,8 @@ endif()
 
 # Check for JSMN
 include(CheckIncludeFile)
-find_library(JSMN jsmn)
+include(CheckCCompilerFlag)
+
 add_definitions(
     -DJSMN_STATIC
 )
@@ -24,6 +25,8 @@ CHECK_INCLUDE_FILE("jsmn.h" HAVE_JSMN_H)
 if (NOT HAVE_JSMN_H)
     message( FATAL_ERROR "'jsmn.h' was not found" )
 endif()
+set(CMAKE_REQUIRED_LIBRARIES "-ljsmn")
+CHECK_C_SOURCE_COMPILES("int main(void){return 0;}" HAVE_JSMN_LIB)
 
 # global cflags
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og -g")
@@ -96,6 +99,6 @@ endif()
 target_link_libraries(mender
     mender_platform
     http_parser
-    $<$<BOOL:${JSMN}>:jsmn>
+    $<$<BOOL:${HAVE_JSMN_LIB}>:jsmn>
     $<$<BOOL:${ENABLE_TESTING}>:cmocka>
 )
