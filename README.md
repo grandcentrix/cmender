@@ -50,20 +50,6 @@ make
 ```
 * Keep in mind that SANITIZE_MEMORY state is cached and if you want to enable another sanitizer you first have to turn SANITIZE_MEMORY off
 
-### SANITIZE_ADDRESS
-```
-CFLAGS="-I<repo-dir>/jsmn" LDFLAGS="-L<repo-dir>/jsmn" cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON -DCODE_COVERAGE=ON -DENABLE_SANITIZER=ON -DSANITIZER_DIR="<repo-dir>/sanitizers-cmake" -DSANITIZE_ADDRESS=On ..
-```
-
-### SANITIZE_MEMORY
-```
-CFLAGS="-I<repo-dir>/jsmn" LDFLAGS="-L<repo-dir>/jsmn" cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON -DCODE_COVERAGE=ON -DENABLE_SANITIZER=ON -DSANITIZER_DIR="<repo-dir>/sanitizers-cmake" -DSANITIZE_MEMORY=On ..
-```
-
-### SANITIZE_UNDEFINED
-```
-CFLAGS="-I<repo-dir>/jsmn" LDFLAGS="-L<repo-dir>/jsmn" cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON -DCODE_COVERAGE=ON -DENABLE_SANITIZER=ON -DSANITIZER_DIR="<repo-dir>/sanitizers-cmake" -DSANITIZE_UNDEFINED=On -DCMAKE_C_COMPILER=clang ..
-```
 
 ## Test tool
 ### Dependencies
