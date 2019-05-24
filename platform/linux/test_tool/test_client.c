@@ -103,7 +103,8 @@ static uint8_t stack_buf[CONFIG_MENDER_MULTI_BUFFER_SZ];
 static struct mender_stack stack;
 
 int main(int argc, char **argv) {
-    int rc, fd;
+    int rc;
+    int fd;
     struct stat sb;
     mender_err_t merr;
     struct eventloop_slot_loop loop;
@@ -120,71 +121,63 @@ int main(int argc, char **argv) {
     int inventory_interval = 1800;
     int retry_interval = 300;
 
-
-
-    while ((option = getopt_long(argc, argv, "hc:p:k:a:d:s:u:i:r:m:", long_options, NULL)) != -1)
-    {
+    while ((option = getopt_long(argc, argv, "hc:p:k:a:d:s:u:i:r:m:", long_options, NULL)) != -1) {
         // check to see if a single character or long option came through
-        switch (option)
-        {
-            case 'h':
-                print_usage();
-                exit(1);
-                break;
+        switch (option) {
+        case 'h':
+            print_usage();
+            exit(1);
+            break;
 
-            case 'c':
-                cert_path = optarg;
-                break;
+        case 'c':
+            cert_path = optarg;
+            break;
 
-            case 'p':
-                store_path = optarg;
-                break;
+        case 'p':
+            store_path = optarg;
+            break;
 
-            case 'k':
-                key_path = optarg;
-                break;
+        case 'k':
+            key_path = optarg;
+            break;
 
-            case 'a':
-                artifact_name = optarg;
-                break;
+        case 'a':
+            artifact_name = optarg;
+            break;
 
-            case 'd':
-                device_type = optarg;
-                break;
+        case 'd':
+            device_type = optarg;
+            break;
 
-            case 's':
-                server_url = optarg;
-                break;
+        case 's':
+            server_url = optarg;
+            break;
 
-            case 'u':
-                update_interval = atoi(optarg);
-                break;
+        case 'u':
+            update_interval = atoi(optarg);
+            break;
 
-            case 'i':
-                inventory_interval = atoi(optarg);
-                break;
+        case 'i':
+            inventory_interval = atoi(optarg);
+            break;
 
-            case 'r':
-                retry_interval = atoi(optarg);
-                break;
+        case 'r':
+            retry_interval = atoi(optarg);
+            break;
 
-            case 'm':
-                mac_address = optarg;
-                break;
+        case 'm':
+            mac_address = optarg;
+            break;
         }
     }
-    printf ("Arguments took: \nc = %s, p = %s, k = %s, a = %s, d = %s, s = %s, u = %d, i = %d, r = %d, m = %s\n",
+
+    printf("Arguments took: \nc = %s, p = %s, k = %s, a = %s, d = %s, s = %s, u = %d, i = %d, r = %d, m = %s\n",
             cert_path, store_path, key_path, artifact_name, device_type, server_url, update_interval, inventory_interval, retry_interval, mac_address);
-
-
 
     mender_stack_create(&stack, stack_buf, sizeof(stack_buf));
 
-
     fd = open(cert_path, O_RDONLY);
-
-    if(fd < 0)
-    {
+    if (fd < 0) {
         fprintf(stderr, "Error:\nCan not open %s : %s \n", cert_path, strerror(errno));
         return -1;
     }
