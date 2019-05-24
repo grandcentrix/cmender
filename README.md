@@ -56,7 +56,7 @@ make
 * Build successful
 * Create folder structure
 ```
-mkdir <data-dir> && mkdir <data-dir>/../certpath && mkdir <data-dir>/menderstore
+mkdir -p <data-dir>/menderstore
 ```
 
 ### Create required cert
@@ -65,14 +65,15 @@ openssl s_client -showcerts -connect <server-url>:443 </dev/null
 ```
 * Copy the last Root CA into a file named cert.crt
 * Convert .crt into .der
+* Some servers  don't send the CA cert. In that case you have to obtain it using a different way.
 ```
-openssl x509 -outform der -in cert.crt -out <data-dir>/certpath/cert.der
+openssl x509 -outform der -in cert.crt -out <data-dir>/cert.der
 ```
 
 ### Using the test tool
-After building the project successfully and setting up the folder structure start the test client with the following command and display the help menu
+After building the project successfully and setting up the folder structure start the test client with the following command and display the help
 ```
-./build/platform/linux/test_tool -h
+./platform/linux/test_tool/test_tool -h
 ```
 
 * After a deployment the test tool exits instead of a reboot a real device would do. Start the test tool again but set the artifact name to the deployed version. After that the server should display a successful deployment.
