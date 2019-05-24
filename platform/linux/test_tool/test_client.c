@@ -51,7 +51,7 @@ static struct option long_options[] =
     {NULL, 0, NULL, 0}
 };
 
-static void print_usage(void) {
+static void print_usage(const char *program) {
     printf("Usage:\n"
             "--help -h\t\t\t Display this information\n"
             "--certPath -c <arg>\t\t DER certificate\n"
@@ -66,9 +66,9 @@ static void print_usage(void) {
             "--macAddress -m <arg>\t\t MAC address to use in identity-data\n\n");
 
 
-    printf("Example_short:\n./test_tool -c ../data/cert.der -p ../data/menderstore -k ../data/key.priv -a 1 -d TESTDEVICE -s localhost -u 10 -i 10 -r 10 -m 11:22:33:44:55:66\n\n");
-    printf("Example_long:\n./test_tool --certPath ../data/cert.der --storePath ../data/menderstore --key ../data/key.priv --artifactName 1 --deviceType TESTDEVICE --serverUrl localhost"
-            "--updateInterval 10 --inventoryInterval 10 --retryInterval 10 --macAddress 11:22:33:44:55:66\n\n");
+    printf("Example_short:\n%s -c ../data/cert.der -p ../data/menderstore -k ../data/key.priv -a 1 -d TESTDEVICE -s localhost -u 10 -i 10 -r 10 -m 11:22:33:44:55:66\n\n", program);
+    printf("Example_long:\n%s --certPath ../data/cert.der --storePath ../data/menderstore --key ../data/key.priv --artifactName 1 --deviceType TESTDEVICE --serverUrl localhost"
+            "--updateInterval 10 --inventoryInterval 10 --retryInterval 10 --macAddress 11:22:33:44:55:66\n\n", program);
 }
 
 static void loop_cb(void *ctx) {
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
         // check to see if a single character or long option came through
         switch (option) {
         case 'h':
-            print_usage();
+            print_usage(argv[0]);
             exit(1);
             break;
 
