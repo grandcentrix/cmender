@@ -26,6 +26,7 @@ int mender_test_run_state(void);
 int mender_test_run_installer(void);
 int mender_test_run_stack(void);
 int mender_test_run_utils(void);
+int mender_test_run_mender(void);
 
 int mender_run_all_tests(void);
 

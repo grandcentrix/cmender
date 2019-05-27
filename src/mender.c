@@ -18,6 +18,12 @@
 #include <mender/internal/compiler.h>
 #include <mender/platform/log.h>
 
+#ifdef MENDER_ENABLE_TESTING
+#include <mender/test/mock/authmgr.h>
+#include <mender/test/mock/client_auth.h>
+#include <mender/test/mock/client_update.h>
+#endif
+
 #define MENDER_VERSION_STR "1.5.0"
 
 static mender_err_t bootstrap(struct mender *mender) {
@@ -785,3 +791,7 @@ const char *mender_state_to_str(enum mender_state s) {
     default: return "unknown";
     }
 }
+
+#ifdef MENDER_ENABLE_TESTING
+#include "../tests/mender.c"
+#endif

@@ -38,6 +38,10 @@ int mender_run_all_tests(void) {
     if (rc)
         ret = -1;
 
+    rc = mender_test_run_mender();
+    if (rc)
+        ret = -1;
+
     if (ret) {
         LOGE("SOME TESTS FAILED");
     }
