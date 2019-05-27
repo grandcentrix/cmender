@@ -19,3 +19,4 @@ int mender_device_mocking_enabled = 0;
 int mender_time_mocking_enabled = 0;
 int mender_store_mocking_enabled = 0;
 int mender_authmgr_mocking_enabled = 0;
+int mender_client_auth_mocking_enabled = 0;
