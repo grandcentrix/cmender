@@ -136,6 +136,7 @@ static int setup(void **state __unused) {
     mender_authmgr_mocking_enabled = 1;
     mender_client_auth_mocking_enabled = 1;
     mender_client_update_mocking_enabled = 1;
+    mender_client_inventory_mocking_enabled = 1;
     return 0;
 }
 
@@ -143,6 +144,7 @@ static int teardown(void **state __unused) {
     mender_authmgr_mocking_enabled = 0;
     mender_client_auth_mocking_enabled = 0;
     mender_client_update_mocking_enabled = 0;
+    mender_client_inventory_mocking_enabled = 0;
     return 0;
 }
 

@@ -22,6 +22,7 @@
 #include <mender/test/mock/authmgr.h>
 #include <mender/test/mock/client_auth.h>
 #include <mender/test/mock/client_update.h>
+#include <mender/test/mock/client_inventory.h>
 #endif
 
 #define MENDER_VERSION_STR "1.5.0"
