@@ -22,3 +22,4 @@ int mender_authmgr_mocking_enabled = 0;
 int mender_client_auth_mocking_enabled = 0;
 int mender_client_update_mocking_enabled = 0;
 int mender_client_inventory_mocking_enabled = 0;
+int mender_client_status_mocking_enabled = 0;

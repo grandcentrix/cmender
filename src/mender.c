@@ -23,6 +23,7 @@
 #include <mender/test/mock/client_auth.h>
 #include <mender/test/mock/client_update.h>
 #include <mender/test/mock/client_inventory.h>
+#include <mender/test/mock/client_status.h>
 #endif
 
 #define MENDER_VERSION_STR "1.5.0"
