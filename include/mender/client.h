@@ -59,6 +59,8 @@ struct mender_client_req_ctx {
     struct mender_http_client *client;
     struct mender_authmgr *authmgr;
 
+    bool sendbearer;
+
     void *token;
     size_t token_len;
     const void *data;
@@ -68,6 +70,7 @@ struct mender_client_req_ctx {
 void mender_client_req_ctx_init(struct mender_client_req_ctx *ctx,
     struct mender_http_client *client, struct mender_authmgr *authmgr);
 void mender_client_req_ctx_reset(struct mender_client_req_ctx *ctx);
+mender_err_t mender_client_req_handle_send(struct mender_client_req_ctx *ctx);
 mender_err_t mender_client_req_handle_send(struct mender_client_req_ctx *ctx);
 
 mender_err_t mender_client_build_api_url(char *buf, size_t maxsz,  size_t *pactual,

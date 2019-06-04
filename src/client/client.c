@@ -158,6 +158,7 @@ void mender_client_req_ctx_init(struct mender_client_req_ctx *ctx,
     ctx->client = client;
     ctx->authmgr = authmgr;
     ctx->state = MENDER_CLIENT_REQ_STATE_READY;
+    ctx->sendbearer = true;
 }
 
 void mender_client_req_ctx_reset(struct mender_client_req_ctx *ctx) {
@@ -166,6 +167,7 @@ void mender_client_req_ctx_reset(struct mender_client_req_ctx *ctx) {
     ctx->data = NULL;
     ctx->data_len = 0;
     ctx->state = MENDER_CLIENT_REQ_STATE_READY;
+    ctx->sendbearer = true;
 }
 
 mender_err_t mender_client_req_handle_send(struct mender_client_req_ctx *ctx) {
@@ -173,8 +175,14 @@ mender_err_t mender_client_req_handle_send(struct mender_client_req_ctx *ctx) {
 
     switch (ctx->state) {
     case MENDER_CLIENT_REQ_STATE_CONNECT:
-        ctx->state = MENDER_CLIENT_REQ_STATE_SEND_BEARER_KEY;
-        mender_http_client_send_str(ctx->client, "Authorization: Bearer ");
+        if (ctx->sendbearer) {
+            mender_http_client_send_str(ctx->client, "Authorization: Bearer ");
+            ctx->state = MENDER_CLIENT_REQ_STATE_SEND_BEARER_KEY;
+        }
+        else {
+            ctx->state = MENDER_CLIENT_REQ_STATE_SEND_BEARER_END;
+            return MERR_TRY_AGAIN;
+        }
         break;
 
     case MENDER_CLIENT_REQ_STATE_SEND_BEARER_KEY: {
