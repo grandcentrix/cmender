@@ -108,7 +108,8 @@ int main(int argc, char **argv) {
     struct stat sb;
     mender_err_t merr;
     struct eventloop_slot_loop loop;
-    void *der;
+    void *der = NULL;
+    size_t dersz = 0;
     int option;
     char *cert_path = NULL;
     char *store_path = NULL;
@@ -171,28 +172,32 @@ int main(int argc, char **argv) {
         }
     }
 
-    fd = open(cert_path, O_RDONLY);
-    if (fd < 0) {
-        LOGE("Error: Can not open %s: %s", cert_path, strerror(errno));
-        return -1;
-    }
+    if (cert_path) {
+        fd = open(cert_path, O_RDONLY);
+        if (fd < 0) {
+            LOGE("Error: Can not open %s: %s", cert_path, strerror(errno));
+            return -1;
+        }
 
-    rc = fstat(fd, &sb);
-    if (rc) {
-        LOGE("Error: fstat failed: %s", strerror(errno));
-        return -1;
-    }
+        rc = fstat(fd, &sb);
+        if (rc) {
+            LOGE("Error: fstat failed: %s", strerror(errno));
+            return -1;
+        }
 
-    der = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (der == MAP_FAILED) {
-        LOGE("Error: mmap failed: %s", strerror(errno));
-        return -1;
+        der = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        if (der == MAP_FAILED) {
+            LOGE("Error: mmap failed: %s", strerror(errno));
+            return -1;
+        }
+
+        dersz = sb.st_size;
     }
 
     mender_stack_create(&stack, stack_buf, sizeof(stack_buf));
     mender_eventloop_create(&eventloop);
     mender_http_transport_tcp_create(&tcp, &eventloop);
-    mender_http_transport_ssl_create(&ssl, &eventloop, der, sb.st_size);
+    mender_http_transport_ssl_create(&ssl, &eventloop, der, dersz);
 
     merr = mender_http_client_create(&client, &stack, &tcp.t, &ssl.t);
     if (merr) {
