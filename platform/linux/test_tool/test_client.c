@@ -169,6 +169,10 @@ int main(int argc, char **argv) {
         case 'm':
             mac_address = optarg;
             break;
+
+        default:
+            print_usage(argv[0]);
+            exit(EXIT_FAILURE);
         }
     }
 
