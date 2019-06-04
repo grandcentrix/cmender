@@ -136,6 +136,7 @@ mender_err_t mender_client_update_fetch(struct mender_client_update *u, const ch
     }
 
     u->req_ctx.state = MENDER_CLIENT_REQ_STATE_CONNECT;
+    u->req_ctx.sendbearer = false;
 
     u->u.fetch.cb = cb;
     u->u.fetch.cbctx = cbctx;
