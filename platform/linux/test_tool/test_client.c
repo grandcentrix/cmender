@@ -54,16 +54,16 @@ static struct option long_options[] =
 static void print_usage(const char *program) {
     printf("Usage:\n"
             "--help -h\t\t\t Display this information\n"
-            "--certPath -c <arg>\t\t DER certificate\n"
-            "--storePath -p <arg>\t\t Path to the persistent storage directory\n"
-            "--key -k <arg>\t\t\t Path to the private key file of the client\n"
-            "--artifactName -a <arg>\t\t Currently installed artifact name\n"
-            "--deviceType -d <arg>\t\t Device type which will be reported to ths server\n"
-            "--serverUrl -s <arg>\t\t Mender server URL\n"
-            "--updateInterval -u <arg>\t Update interval in seconds\n"
-            "--inventoryInterval -i <arg>\t Inventory report interval in seconds\n"
-            "--retryInterval -r <arg>\t Retry interval in seconds\n"
-            "--macAddress -m <arg>\t\t MAC address to use in identity-data\n\n");
+            "--certPath -c <arg>\t\t DER certificate (required)\n"
+            "--storePath -p <arg>\t\t Path to the persistent storage directory (required)\n"
+            "--key -k <arg>\t\t\t Path to the private key file of the client (required)\n"
+            "--artifactName -a <arg>\t\t Currently installed artifact name (required)\n"
+            "--deviceType -d <arg>\t\t Device type which will be reported to ths server (required)\n"
+            "--serverUrl -s <arg>\t\t Mender server URL (required)\n"
+            "--updateInterval -u <arg>\t Update interval in seconds (default: 1800)\n"
+            "--inventoryInterval -i <arg>\t Inventory report interval in seconds (default: 1800)\n"
+            "--retryInterval -r <arg>\t Retry interval in seconds (default: 300)\n"
+            "--macAddress -m <arg>\t\t MAC address to use in identity-data (required)\n\n");
 
 
     printf("Example_short:\n%s -c ../data/cert.der -p ../data/menderstore -k ../data/key.priv -a 1 -d TESTDEVICE -s localhost -u 10 -i 10 -r 10 -m 11:22:33:44:55:66\n\n", program);
@@ -121,6 +121,7 @@ int main(int argc, char **argv) {
     int update_interval = 1800;
     int inventory_interval = 1800;
     int retry_interval = 300;
+    bool failed = false;
 
     while ((option = getopt_long(argc, argv, "hc:p:k:a:d:s:u:i:r:m:", long_options, NULL)) != -1) {
         // check to see if a single character or long option came through
@@ -196,6 +197,41 @@ int main(int argc, char **argv) {
         }
 
         dersz = sb.st_size;
+    }
+
+    if (!store_path) {
+        LOGE("storePath required");
+        failed = true;
+    }
+
+    if (!key_path) {
+        LOGE("key required");
+        failed = true;
+    }
+
+    if (!artifact_name) {
+        LOGE("artifactName required");
+        failed = true;
+    }
+
+    if (!device_type) {
+        LOGE("deviceType required");
+        failed = true;
+    }
+
+    if (!server_url) {
+        LOGE("serverUrl required");
+        failed = true;
+    }
+
+    if (!mac_address) {
+        LOGE("macAddress required");
+        failed = true;
+    }
+
+    if (failed) {
+        print_usage(argv[0]);
+        exit(EXIT_FAILURE);
     }
 
     mender_stack_create(&stack, stack_buf, sizeof(stack_buf));
