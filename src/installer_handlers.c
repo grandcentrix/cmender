@@ -65,8 +65,10 @@ static inline mender_err_t _mender_installer_json_skip(const jsmntok_t *tkn, siz
             const jsmntok_t *tkk = tkn+(ntokens++);
 
             /* here could be some sort of recursion, but we just stop here and fail */
-            if (tkk->type == JSMN_ARRAY || tkk->type == JSMN_OBJECT)
+            if (tkk->type == JSMN_ARRAY || tkk->type == JSMN_OBJECT) {
+                LOGE("unsupported json type: %d", tkk->type);
                 return MERR_JSON_TYPE_ERROR;
+            }
 
             ntokens += tkk->size;
         }
@@ -86,21 +88,27 @@ static mender_err_t mender_installer_version_recv(struct mender_installer *i __u
     const jsmntok_t *format = NULL;
     const jsmntok_t *version = NULL;
 
-    if (tokens[cnt++].type != JSMN_OBJECT)
+    if (tokens[cnt++].type != JSMN_OBJECT) {
+        LOGE("version file has invalid type: %d", tokens[cnt - 1].type);
         return MERR_JSON_TYPE_ERROR;
+    }
 
     while (cnt < ntokens) {
         const jsmntok_t *tk = &tokens[cnt++];
         const jsmntok_t *tv = &tokens[cnt++];
 
-        if (tk->type != JSMN_STRING)
+        if (tk->type != JSMN_STRING) {
+            LOGE("version key has invalid type: %d", tk->type);
             return MERR_JSON_TYPE_ERROR;
+        }
 
         if (IS_JSON_STREQ(buf, tk, "format")) {
             if (format == NULL)
                 format = tv;
-            else
+            else {
+                LOGE("multiple formats in version file");
                 return MERR_JSON_UNEXPECTED_KEY;
+            }
         }
         else if (IS_JSON_STREQ(buf, tk, "version")) {
             buf[tv->end] = 0;
@@ -108,8 +116,10 @@ static mender_err_t mender_installer_version_recv(struct mender_installer *i __u
 
             if (version == NULL)
                 version = tv;
-            else
+            else {
+                LOGE("multiple versions in version file");
                 return MERR_JSON_UNEXPECTED_KEY;
+            }
         }
         else {
             buf[tk->end] = 0;
@@ -123,8 +133,10 @@ static mender_err_t mender_installer_version_recv(struct mender_installer *i __u
         return MERR_JSON_KEY_MISSING;
     }
 
-    if (format->type != JSMN_STRING)
+    if (format->type != JSMN_STRING) {
+        LOGE("format key has invalid type: %d", format->type);
         return MERR_JSON_TYPE_ERROR;
+    }
 
     if (!IS_JSON_STREQ(buf, format, "mender")) {
         buf[format->end] = 0;
@@ -312,35 +324,47 @@ static mender_err_t mender_installer_header_info_recv(struct mender_installer *i
     const jsmntok_t *artifact_name = NULL;
     char *artifact_name_s = NULL;
 
-    if (tokens[cnt++].type != JSMN_OBJECT)
+    if (tokens[cnt++].type != JSMN_OBJECT) {
+        LOGE("header info file has invalid type: %d", tokens[cnt - 1].type);
         return MERR_JSON_TYPE_ERROR;
+    }
 
     while (cnt < ntokens) {
         const jsmntok_t *tk = &tokens[cnt++];
         const jsmntok_t *tv = &tokens[cnt++];
-        if (tk->type != JSMN_STRING)
+        if (tk->type != JSMN_STRING) {
+            LOGE("key has invalid type: %d", tk->type);
             return MERR_JSON_TYPE_ERROR;
+        }
 
         if (IS_JSON_STREQ(buf, tk, "updates")) {
-            if (tv->type != JSMN_ARRAY)
+            if (tv->type != JSMN_ARRAY) {
+                LOGE("updates value has invalid type: %d", tv->type);
                 return MERR_JSON_TYPE_ERROR;
+            }
 
             /*
              * As we do not want to store this information, we just skip it.
              * We'll get this information later anyways.
              */
             merr = _mender_installer_json_skip(tv, &cnt);
-            if (merr != MERR_NONE)
+            if (merr != MERR_NONE) {
+                LOGE("json_skip: %08x", merr);
                 return merr;
+            }
         }
         else if (IS_JSON_STREQ(buf, tk, "device_types_compatible")) {
-            if (tv->type != JSMN_ARRAY)
+            if (tv->type != JSMN_ARRAY) {
+                LOGE("device_types_compatible value has invalid type: %d", tv->type);
                 return MERR_JSON_TYPE_ERROR;
+            }
 
             for (size_t n=0; n < (size_t)tv->size; n++) {
                 const jsmntok_t *ntk = &tokens[cnt++];
-                if (ntk->type != JSMN_STRING)
+                if (ntk->type != JSMN_STRING) {
+                    LOGE("device_types_compatible array-item has invalid type: %d", ntk->type);
                     return MERR_JSON_TYPE_ERROR;
+                }
 
                 mender_json_decode_str_inplace((char*)(buf+ntk->start), ntk->end-ntk->start, NULL);
                 if (!strcmp((char*)(buf+ntk->start), i->device_type) && device_type < 0) {
@@ -356,8 +380,10 @@ static mender_err_t mender_installer_header_info_recv(struct mender_installer *i
         else if (IS_JSON_STREQ(buf, tk, "artifact_name")) {
             if (artifact_name == NULL)
                 artifact_name = tv;
-            else
+            else {
+                LOGE("multiple artifact_name items in header_info");
                 return MERR_JSON_UNEXPECTED_KEY;
+            }
         }
         else {
             buf[tk->end] = 0;
@@ -381,8 +407,10 @@ static mender_err_t mender_installer_header_info_recv(struct mender_installer *i
         return MERR_IMPLEMENTATION_BUG;
     }
 
-    if (artifact_name->type != JSMN_STRING)
+    if (artifact_name->type != JSMN_STRING) {
+        LOGE("artifact_name has invalid type: %d", artifact_name->type);
         return MERR_JSON_TYPE_ERROR;
+    }
 
     artifact_name_s = buf+artifact_name->start;
     mender_json_decode_str_inplace(artifact_name_s, artifact_name->end-artifact_name->start, NULL);
@@ -413,15 +441,19 @@ static mender_err_t mender_installer_header_files_recv(struct mender_installer *
         return MERR_UNSUPPORTED;
     }
 
-    if (tokens[cnt++].type != JSMN_OBJECT)
+    if (tokens[cnt++].type != JSMN_OBJECT) {
+        LOGE("'files' has invalid type: %d", tokens[cnt - 1].type);
         return MERR_JSON_TYPE_ERROR;
+    }
 
     while (cnt < ntokens) {
         const jsmntok_t *tk = &tokens[cnt++];
         const jsmntok_t *tv = &tokens[cnt++];
 
-        if (tk->type != JSMN_STRING)
+        if (tk->type != JSMN_STRING) {
+            LOGE("'files' key has invalid type: %d", tk->type);
             return MERR_JSON_TYPE_ERROR;
+        }
 
         if (!IS_JSON_STREQ(buf, tk, "files")) {
             buf[tk->end] = 0;
@@ -429,8 +461,10 @@ static mender_err_t mender_installer_header_files_recv(struct mender_installer *
             return MERR_JSON_UNEXPECTED_KEY;
         }
 
-        if (tv->type != JSMN_ARRAY)
+        if (tv->type != JSMN_ARRAY) {
+            LOGE("'files' value has invalid type: %d", tv->type);
             return MERR_JSON_TYPE_ERROR;
+        }
 
         num_files = tv->size;
         cnt += tv->size;
@@ -470,8 +504,10 @@ static mender_err_t mender_installer_header_typeinfo_recv(struct mender_installe
         return MERR_UNSUPPORTED;
     }
 
-    if (tokens[cnt++].type != JSMN_OBJECT)
+    if (tokens[cnt++].type != JSMN_OBJECT) {
+        LOGE("'typeinfo' value has invalid type: %d", tokens[cnt - 1].type);
         return MERR_JSON_TYPE_ERROR;
+    }
 
     while (cnt < ntokens) {
         const jsmntok_t *tk = &tokens[cnt++];
@@ -494,8 +530,10 @@ static mender_err_t mender_installer_header_typeinfo_recv(struct mender_installe
         return MERR_JSON_KEY_MISSING;
     }
 
-    if (type->type != JSMN_STRING)
+    if (type->type != JSMN_STRING) {
+        LOGE("'typeinfo' type has invalid type: %d", type->type);
         return MERR_JSON_TYPE_ERROR;
+    }
 
     if (!IS_JSON_STREQ(buf, type, "rootfs-image")) {
         buf[type->end] = 0;

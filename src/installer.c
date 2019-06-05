@@ -63,13 +63,16 @@ static mender_err_t read_until(struct read_ctx *ctx, const uint8_t **pdata, size
     }
 
     if (ctx->nskip) {
+        LOGE("BUG: ctx->nskip");
         return MERR_INVALID_STATE;
     }
 
     if (*plength) {
         size_t tocopy = MIN(until - ctx->bufpos, *plength);
-        if (ctx->bufpos + tocopy > ctx->bufsz)
+        if (ctx->bufpos + tocopy > ctx->bufsz) {
+            LOGE("buffer is too small to read data");
             return MERR_BUFFER_TOO_SMALL;
+        }
 
         memcpy(&ctx->buf[ctx->bufpos], *pdata, tocopy);
         ctx->bufpos += tocopy;
@@ -163,8 +166,11 @@ static mender_err_t mender_installer_process_data_json(struct mender_installer *
     int res;
 
     merr = read_until(&ctx->readctx, &data, &length, ctx->readctx.bufsz, &read_complete);
-    if (merr || !read_complete)
+    if (merr || !read_complete) {
+        if (merr)
+            LOGE("read_until failed: %08x", merr);
         return merr;
+    }
 
     jsmn_init(&ctx->parser);
 
@@ -196,8 +202,11 @@ static mender_err_t mender_installer_process_data_readall(struct mender_installe
     int read_complete;
 
     merr = read_until(&ctx->readctx, &data, &length, ctx->readctx.bufsz - 1, &read_complete);
-    if (merr || !read_complete)
+    if (merr || !read_complete) {
+        if (merr)
+            LOGE("read_until failed: %08x", merr);
         return merr;
+    }
 
     ctx->readctx.buf[ctx->readctx.bufsz - 1] = '\0';
 
@@ -215,14 +224,20 @@ static mender_err_t mender_installer_process_data_tar(struct mender_installer *i
 
     while (length) {
         merr = handle_skip(readctx, &data, &length);
-        if (merr || readctx->nskip)
+        if (merr || readctx->nskip) {
+            if (merr)
+                LOGE("handle_skip failed: %08x", merr);
             return merr;
+        }
 
         switch (ctx->state) {
             case MENDER_TAR_STATE_RECV_HDR: {
                 merr = read_until(readctx, &data, &length, sizeof(struct tar_hdr_raw), &read_complete);
-                if (merr || !read_complete)
+                if (merr || !read_complete) {
+                    if (merr)
+                        LOGE("read_until failed: %08x", merr);
                     return merr;
+                }
 
                 hdr = (void*)readctx->buf;
                 hdr->name[sizeof(hdr->name) - 1] = '\0';
@@ -381,20 +396,26 @@ static mender_err_t mender_installer_process_data_tar(struct mender_installer *i
 
                     case MENDER_INSTALLER_FILE_TYPE_READALL:
                         merr = mender_installer_process_data_readall(i, file, &ctx->u.readall, data, torecv);
-                        if (merr)
+                        if (merr) {
+                            LOGE("process_data_readall: %08x", merr);
                             return merr;
+                        }
                         break;
 
                     case MENDER_INSTALLER_FILE_TYPE_JSON:
                         merr = mender_installer_process_data_json(i, file, &ctx->u.json, data, torecv);
-                        if (merr)
+                        if (merr) {
+                            LOGE("process_data_json: %08x", merr);
                             return merr;
+                        }
                         break;
 
                     case MENDER_INSTALLER_FILE_TYPE_TAR:
                         merr = mender_installer_process_data_tar(i, ctx->u.tar.subtar, data, torecv);
-                        if (merr)
+                        if (merr) {
+                            LOGE("process_data_tar: %08x", merr);
                             return merr;
+                        }
                         break;
 
                     default:
@@ -485,6 +506,7 @@ mender_err_t mender_installer_process_data(struct mender_installer *i, const voi
     merr = mender_installer_process_data_tar(i, i->state->root_tar_ctx, data, length);
 
     if (merr != MERR_NONE) {
+        LOGE("process_data_tar: %08x", merr);
         i->state->successfull_install = false;
     }
 
