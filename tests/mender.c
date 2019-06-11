@@ -39,6 +39,15 @@ static mender_time_t get_update_check_time_cb(void) {
     return fake_time;
 }
 
+static const char fake_data[] = {
+    0x2c, 0xad, 0x8c, 0xbb, 0x9b, 0x00, 0x5a, 0x96, 0x38, 0x29, 0x68, 0x85,
+    0xe1, 0xd5, 0xcd, 0xe7, 0xc9, 0x25, 0x42, 0x00, 0x45, 0x0f, 0x10, 0x52,
+    0xb3, 0x85, 0x3d, 0xee, 0x0f, 0x31, 0xb6, 0x05, 0x93, 0x31, 0xed, 0xed,
+    0x86, 0x02, 0x63, 0x38, 0xc7, 0xb1, 0x00, 0x86, 0x94, 0x41, 0xf0, 0x81,
+    0xd1, 0x1e, 0x87, 0x3c, 0x2f, 0xf6, 0x10, 0x63, 0x52, 0xb5, 0x12, 0xc0,
+    0x14, 0xcb, 0xc6, 0xbc
+};
+
 static void setup_mender(void) {
     expect_mender_client_auth_create(&mender_instance.client_auth, fake_client, fake_authmgr);
     expect_mender_client_inventory_create(&mender_instance.client_inventory, fake_client, fake_authmgr);
@@ -170,7 +179,6 @@ static void test_mender_check_update(void **state __unused) {
     assert_ptr_equal(mender_instance.cb, cb);
     assert_ptr_equal(mender_instance.cbctx, (void*)0xbaadc0de);
 }
-
 static void test_mender_check_update_cb(void **state __unused) {
     // We are not authorized any longer, the auth token has to be removed
     setup_mender();
@@ -217,11 +225,69 @@ static void test_mender_check_update_cb(void **state __unused) {
     check_update_cb((void*)&mender_instance, MERR_NONE);
 }
 
+static void test_mender_fetch_update(void **state __unused) {
+    struct mender mender_instance_backup;
+    mender_err_t ret;
+
+    // Test another auth request is running
+    setup_mender();
+    mender_instance.cb = (mender_on_result_t)0xdeadbeef;
+    expect_cb((void*)0xbaadc0de, MERR_BUSY);
+    mender_fetch_update(&mender_instance, "https://fake-download-url.com/", "fake-new-artifact",  cb, (void*)0xbaadc0de);
+
+    // Test http client failed
+    setup_mender();
+    expect_mender_client_update_fetch(&mender_instance.client_update, "https://fake-download-url.com/", fake_duration,
+        &mender_instance.fetch_update_cb, &mender_instance, MERR_BUSY);
+    expect_cb((void*)0xbaadc0de, MERR_BUSY);
+    mender_fetch_update(&mender_instance, "https://fake-download-url.com/", "fake-new-artifact",  cb, (void*)0xbaadc0de);
+
+    // Test update fetch success
+    setup_mender();
+    expect_mender_client_update_fetch(&mender_instance.client_update, "https://fake-download-url.com/", fake_duration,
+        &mender_instance.fetch_update_cb, &mender_instance, MERR_NONE);
+    mender_fetch_update(&mender_instance, "https://fake-download-url.com/", "fake-new-artifact",  cb, (void*)0xbaadc0de);
+
+    assert_ptr_equal(mender_instance.cb, cb);
+    assert_ptr_equal(mender_instance.cbctx, (void*)0xbaadc0de);
+
+    // Test callbacks
+    // Test mender_fetchupdate_on_init_success
+    expect_mender_installer_begin(&mender_instance.installer, "fake-new-artifact", MERR_NONE);
+    ret = mender_fetchupdate_on_init_success(&mender_instance);
+    assert_int_equal(ret, MERR_NONE);
+
+    // Test mender_fetchupdate_on_data
+    expect_mender_installer_process_data(&mender_instance.installer, fake_data, sizeof(fake_data), MERR_NONE);
+    ret = mender_fetchupdate_on_data(&mender_instance, fake_data, sizeof(fake_data));
+    assert_int_equal(ret, MERR_NONE);
+
+    // Back up our mender instance for later use
+    memcpy(&mender_instance_backup, &mender_instance, sizeof(struct mender));
+
+    // Test mender_fetchupdate_on_finish
+    expect_mender_installer_finish(&mender_instance.installer, MERR_NONE);
+    expect_cb((void*)0xbaadc0de, MERR_NONE);
+    mender_fetchupdate_on_finish(&mender_instance, MERR_NONE);
+
+    // Test mender_fetchupdate_on_finish gets errors passed through
+    memcpy(&mender_instance, &mender_instance_backup, sizeof(struct mender));
+    expect_cb((void*)0xbaadc0de, MERR_UNKNOWN);
+    mender_fetchupdate_on_finish(&mender_instance, MERR_UNKNOWN);
+
+    // Test mender_fetchupdate_on_finish gets installers errors passed through
+    memcpy(&mender_instance, &mender_instance_backup, sizeof(struct mender));
+    expect_mender_installer_finish(&mender_instance.installer, MERR_INSTALL_NOT_SUCCESSFULL);
+    expect_cb((void*)0xbaadc0de, MERR_INSTALL_NOT_SUCCESSFULL);
+    mender_fetchupdate_on_finish(&mender_instance, MERR_NONE);
+}
+
 static const struct CMUnitTest tests_mender[] = {
     cmocka_unit_test(test_mender_authorize),
     cmocka_unit_test(test_mender_auth_cb),
     cmocka_unit_test(test_mender_check_update),
     cmocka_unit_test(test_mender_check_update_cb),
+    cmocka_unit_test(test_mender_fetch_update),
 };
 
 static int setup(void **state __unused) {
