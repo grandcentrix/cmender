@@ -90,6 +90,14 @@ static void ssl_handshake_start(struct mender_http_transport_ssl *ssl) {
         goto out_close;
     }
 
+#ifdef CONFIG_MENDER_PLATFORM_SSL_FRAG_LEN
+#define _CONCAT(x,y) x ## y
+#define CONCAT(x,y) _CONCAT(x,y)
+#define LOCAL_FRAGMENT_LENGTH CONCAT(MBEDTLS_SSL_MAX_FRAG_LEN_, CONFIG_MENDER_PLATFORM_SSL_FRAG_LEN)
+    mbedtls_ssl_conf_max_frag_len(&ssl->conf, LOCAL_FRAGMENT_LENGTH);
+#undef LOCAL_FRAGMENT_LENGTH
+#endif
+
     if (ssl->der_buf) {
         mbedtls_ssl_conf_authmode(&ssl->conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
         mbedtls_ssl_conf_ca_chain(&ssl->conf, &ssl->cacert, NULL);
