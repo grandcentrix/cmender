@@ -15,4 +15,4 @@ RUN cd /tmp/yay && sudo -u builduser makepkg -si --noconfirm
 RUN rm -rf /tmp/yay
 
 # install AUR deps
-RUN sudo -u builduser yay -S --noconfirm lcov-git
+RUN sudo -u builduser yay -S --noconfirm lcov
