@@ -67,7 +67,13 @@ mender_err_t mender_http_transport_util_connect(struct mender_http_transport_con
     ctx->cur = ctx->addr_list;
     ctx->pfd = pfd;
     *(ctx->pfd) = -1;
-    return mender_http_transport_util_connect_cont(ctx);
+
+    rc = mender_http_transport_util_connect_cont(ctx);
+    if (rc) {
+        mender_http_transport_util_connect_cleanup(ctx);
+    }
+
+    return rc;
 }
 
 mender_err_t mender_http_transport_util_connect_cont(struct mender_http_transport_connect_ctx *ctx) {
