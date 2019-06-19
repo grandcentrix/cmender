@@ -42,6 +42,13 @@ mender_err_t mender_authmgr_generate_authdata(struct mender_authmgr *am,
     size_t datalen;
     const char *sig;
     size_t siglen;
+    const char *keytype = NULL;
+
+    merr = mender_keystore_get_keytype(am->keystore, &keytype);
+    if (merr) {
+        LOGE("can't get keytype: %08x", merr);
+        return merr;
+    }
 
     /* get default token */
     token = buf + pos;
@@ -97,6 +104,23 @@ mender_err_t mender_authmgr_generate_authdata(struct mender_authmgr *am,
     if (merr)
         return merr;
     pos += actual;
+
+    if (keytype) {
+        /* write pubkeytype */
+        rc = snprintf(buf + pos, bufsz - pos, "\",\"pubkeytype\":\"");
+        if (rc < 0 || rc >= (ssize_t)(bufsz - pos))
+            return MERR_BUFFER_TOO_SMALL;
+        pos += rc;
+
+        rc = snprintf(buf + pos, bufsz - pos, "%s", keytype);
+        if (rc < 0 || rc >= (ssize_t)(bufsz - pos))
+            return MERR_BUFFER_TOO_SMALL;
+
+        merr = mender_json_encode_str_inplace(buf + pos, bufsz - pos, &actual);
+        if (merr)
+            return merr;
+        pos += actual;
+    }
 
     rc = snprintf(buf + pos, bufsz - pos, "\"}");
     if (rc < 0 || rc >= (ssize_t)(bufsz - pos))
