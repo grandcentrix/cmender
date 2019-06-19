@@ -98,6 +98,10 @@ static void ssl_handshake_start(struct mender_http_transport_ssl *ssl) {
 #undef LOCAL_FRAGMENT_LENGTH
 #endif
 
+    if (ssl->ciphersuites) {
+        mbedtls_ssl_conf_ciphersuites(&ssl->conf, ssl->ciphersuites);
+    }
+
     if (ssl->der_buf) {
         mbedtls_ssl_conf_authmode(&ssl->conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
         mbedtls_ssl_conf_ca_chain(&ssl->conf, &ssl->cacert, NULL);
@@ -409,13 +413,15 @@ static void event_cb_get_timeout(void *ctx, mender_time_t *tnext) {
     *tnext = ssl->cb_next;
 }
 
-void mender_http_transport_ssl_create(struct mender_http_transport_ssl *ssl, struct mender_platform_eventloop *el,
-    const void *der, size_t der_sz)
+void mender_http_transport_ssl_create(struct mender_http_transport_ssl *ssl,
+    struct mender_platform_eventloop *el, const void *der, size_t der_sz,
+    const int *ciphersuites)
 {
     memset(ssl, 0, sizeof(*ssl));
     ssl->el = el;
     ssl->der_buf = der;
     ssl->der_sz = der_sz;
+    ssl->ciphersuites = ciphersuites;
     ssl->state = MENDER_HTTP_TRANSPORT_SSL_STATE_READY;
     ssl->t.set_read_cb_enabled = transport_set_read_cb_enabled;
     ssl->t.connect = transport_connect;

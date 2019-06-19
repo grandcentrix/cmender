@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
     mender_stack_create(&stack, stack_buf, sizeof(stack_buf));
     mender_eventloop_create(&eventloop);
     mender_http_transport_tcp_create(&tcp, &eventloop);
-    mender_http_transport_ssl_create(&ssl, &eventloop, der, dersz);
+    mender_http_transport_ssl_create(&ssl, &eventloop, der, dersz, NULL);
 
     merr = mender_http_client_create(&client, &stack, &tcp.t, &ssl.t);
     if (merr) {

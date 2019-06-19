@@ -43,6 +43,7 @@ struct mender_http_transport_ssl {
     struct mender_platform_eventloop *el;
     const void *der_buf;
     size_t der_sz;
+    const int *ciphersuites;
 
     struct eventloop_slot_loop eventloop_cb;
     mender_time_t cb_next;
@@ -62,6 +63,8 @@ struct mender_http_transport_ssl {
     size_t write_len;
 };
 
-void mender_http_transport_ssl_create(struct mender_http_transport_ssl *ssl, struct mender_platform_eventloop *el, const void *der, size_t der_sz);
+void mender_http_transport_ssl_create(struct mender_http_transport_ssl *ssl,
+    struct mender_platform_eventloop *el, const void *der, size_t der_sz,
+    const int *ciphersuites);
 
 #endif /* MENDER_PLATFORM_TRANSPORT_SSL_H */
