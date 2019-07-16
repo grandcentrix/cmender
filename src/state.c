@@ -670,11 +670,18 @@ static void check_wait_state_handle(struct mender_statemachine *sm) {
     mender_time_t update;
     mender_time_t inventory;
     mender_time_t now;
+    mender_time_t scheduled_update_check;
 
     LOGD("handle check wait state");
 
+    scheduled_update_check = mender_get_scheduled_update_time(sm->mender);
+    now = mender_time_now();
+
     /* calculate next interval */
-    update = sm->last_update_check + mender_get_update_poll_interval(sm->mender);
+    if (scheduled_update_check < now)
+        update = sm->last_update_check + mender_get_update_poll_interval(sm->mender);
+    else
+        update = scheduled_update_check;
     inventory = sm->last_inventory_update + mender_get_inventory_poll_interval(sm->mender);
 
     /* if we haven't sent inventory so far */
@@ -694,7 +701,6 @@ static void check_wait_state_handle(struct mender_statemachine *sm) {
         state = MENDER_STATE_UPDATE_CHECK;
     }
 
-    now = mender_time_now();
     LOGD("next check: %llu:%s, (%llu)", (unsigned long long)when,
             mender_state_to_str(state), (unsigned long long)now);
 

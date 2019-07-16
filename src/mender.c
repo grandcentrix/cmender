@@ -135,6 +135,13 @@ mender_duration_t mender_get_update_poll_interval(struct mender *mender) {
     return mender->update_poll_interval;
 }
 
+mender_time_t mender_get_scheduled_update_time(struct mender *mender) {
+    if (mender->get_update_check_time != NULL)
+        return mender->get_update_check_time();
+
+    return 0;
+}
+
 mender_duration_t mender_get_inventory_poll_interval(struct mender *mender) {
     return mender->inventory_poll_interval;
 }
@@ -705,8 +712,8 @@ void mender_create(struct mender *mender, struct mender_store *store, struct men
         struct mender_stack *stack, struct mender_http_client *httpclient, struct mender_device *device,
         struct mender_inventory_data *ivdata,
         const char *current_artifact_name, const char *device_type, const char *server_url,
-        mender_duration_t update_poll_interval, mender_duration_t inventory_poll_interval,
-        mender_duration_t retry_poll_interval)
+        mender_duration_t update_poll_interval, mender_get_scheduled_time_t get_update_check_time_cb,
+        mender_duration_t inventory_poll_interval, mender_duration_t retry_poll_interval)
 {
     memset(mender, 0, sizeof(*mender));
 
@@ -720,6 +727,7 @@ void mender_create(struct mender *mender, struct mender_store *store, struct men
     mender->device_type = device_type;
     mender->server_url = server_url;
     mender->update_poll_interval = update_poll_interval;
+    mender->get_update_check_time = get_update_check_time_cb;
     mender->inventory_poll_interval = inventory_poll_interval;
     mender->retry_poll_interval = retry_poll_interval;
 

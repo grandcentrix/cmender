@@ -603,6 +603,7 @@ static void test_state_update_check_wait(void **state __unused) {
     sm.last_inventory_update = 0;
     sm.last_update_check = 0;
     mender_get_update_poll_interval_expect(mender, 10);
+    mender_get_scheduled_update_time_expect(mender, 0);
     mender_get_inventory_poll_interval_expect(mender, 20);
     sm.current_state = MENDER_STATE_CHECK_WAIT;
     assert_int_equal(mender_statemachine_run_once(&sm), MERR_NONE);
@@ -614,6 +615,7 @@ static void test_state_update_check_wait(void **state __unused) {
     sm.last_inventory_update = FAKE_TIME;
     sm.last_update_check = 0;
     mender_get_update_poll_interval_expect(mender, 10);
+    mender_get_scheduled_update_time_expect(mender, 0);
     mender_get_inventory_poll_interval_expect(mender, 20);
     sm.current_state = MENDER_STATE_CHECK_WAIT;
     assert_int_equal(mender_statemachine_run_once(&sm), MERR_NONE);
@@ -625,6 +627,7 @@ static void test_state_update_check_wait(void **state __unused) {
     sm.last_inventory_update = FAKE_TIME;
     sm.last_update_check = FAKE_TIME;
     mender_get_update_poll_interval_expect(mender, 20);
+    mender_get_scheduled_update_time_expect(mender, 0);
     mender_get_inventory_poll_interval_expect(mender, 10);
     sm.current_state = MENDER_STATE_CHECK_WAIT;
     assert_int_equal(mender_statemachine_run_once(&sm), MERR_NONE);
@@ -636,6 +639,7 @@ static void test_state_update_check_wait(void **state __unused) {
     sm.last_inventory_update = FAKE_TIME;
     sm.last_update_check = FAKE_TIME;
     mender_get_update_poll_interval_expect(mender, 10);
+    mender_get_scheduled_update_time_expect(mender, 0);
     mender_get_inventory_poll_interval_expect(mender, 20);
     sm.current_state = MENDER_STATE_CHECK_WAIT;
     assert_int_equal(mender_statemachine_run_once(&sm), MERR_NONE);

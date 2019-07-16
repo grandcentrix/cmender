@@ -100,6 +100,8 @@ enum mender_state {
 
 typedef void (*mender_on_result_t)(void *ctx, mender_err_t err);
 
+typedef mender_time_t (*mender_get_scheduled_time_t)(void);
+
 struct mender {
     struct mender_store *store;
     struct mender_authmgr *authmgr;
@@ -120,6 +122,7 @@ struct mender {
     mender_duration_t update_poll_interval;
     mender_duration_t inventory_poll_interval;
     mender_duration_t retry_poll_interval;
+    mender_get_scheduled_time_t get_update_check_time;
 
     const char *new_artifact_name;
 
@@ -146,14 +149,15 @@ void mender_create(struct mender *mender, struct mender_store *store, struct men
         struct mender_stack *stack, struct mender_http_client *httpclient, struct mender_device *device,
         struct mender_inventory_data *ivdata,
         const char *current_artifact_name, const char *device_type, const char *server_url,
-        mender_duration_t update_poll_interval, mender_duration_t inventory_poll_interval,
-        mender_duration_t retry_poll_interval);
+        mender_duration_t update_poll_interval, mender_get_scheduled_time_t get_update_check_time_cb,
+        mender_duration_t inventory_poll_interval, mender_duration_t retry_poll_interval);
 
 /* Controller */
 bool mender_is_authorized(struct mender *mender);
 void mender_authorize(struct mender *mender, mender_on_result_t cb, void *cbctx);
 mender_err_t mender_get_current_artifact_name(struct mender *mender, const char **pname);
 mender_duration_t mender_get_update_poll_interval(struct mender *mender);
+mender_time_t mender_get_scheduled_update_time(struct mender *mender);
 mender_duration_t mender_get_inventory_poll_interval(struct mender *mender);
 mender_duration_t mender_get_retry_poll_interval(struct mender *mender);
 mender_err_t mender_has_upgrade(struct mender *mender, bool *phasupgrade);

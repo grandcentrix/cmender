@@ -71,6 +71,15 @@ static inline mender_duration_t mender_get_update_poll_interval_test(struct mend
     return mock_type(mender_duration_t);
 }
 
+static inline mender_time_t mender_get_scheduled_update_time_test(struct mender *mender) {
+    if (!mender_mocking_enabled)
+        return mender_get_scheduled_update_time(mender);
+
+    check_expected_ptr(mender);
+
+    return mock_type(mender_time_t);
+}
+
 static inline mender_duration_t mender_get_inventory_poll_interval_test(struct mender *mender) {
     if (!mender_mocking_enabled)
         return mender_get_inventory_poll_interval(mender);
@@ -295,6 +304,11 @@ static inline void mender_get_update_poll_interval_expect(struct mender *mender,
     will_return(mender_get_update_poll_interval_test, ret);
 }
 
+static inline void mender_get_scheduled_update_time_expect(struct mender *mender, mender_time_t ret) {
+    expect_value(mender_get_scheduled_update_time_test, mender, cast_ptr_to_largest_integral_type(mender));
+    will_return(mender_get_scheduled_update_time_test, ret);
+}
+
 static inline void mender_get_inventory_poll_interval_expect(struct mender *mender, mender_duration_t ret) {
     expect_value(mender_get_inventory_poll_interval_test, mender, cast_ptr_to_largest_integral_type(mender));
     will_return(mender_get_inventory_poll_interval_test, ret);
@@ -364,6 +378,7 @@ static inline void mender_enable_updated_partition_expect(struct mender *mender,
 #define mender_authorize mender_authorize_test
 #define mender_get_current_artifact_name mender_get_current_artifact_name_test
 #define mender_get_update_poll_interval mender_get_update_poll_interval_test
+#define mender_get_scheduled_update_time mender_get_scheduled_update_time_test
 #define mender_get_inventory_poll_interval mender_get_inventory_poll_interval_test
 #define mender_get_retry_poll_interval mender_get_retry_poll_interval_test
 #define mender_has_upgrade mender_has_upgrade_test

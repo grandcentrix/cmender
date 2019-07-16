@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
     mender_authmgr_create(&authmgr, &store, &keystore, &id_data);
     mender_platform_device_create(&dev, &store);
     mender_create(&mender, &store, &authmgr, &stack, &client, &dev, &iv_data,
-        artifact_name, device_type, server_url, update_interval, inventory_interval, retry_interval);
+        artifact_name, device_type, server_url, update_interval, NULL, inventory_interval, retry_interval);
     mender_statemachine_create(&statemachine, &store, &mender);
 
     memset(&loop, 0, sizeof(loop));
