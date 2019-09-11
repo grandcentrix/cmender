@@ -44,6 +44,7 @@ struct mender_http_transport_ssl {
     const void *der_buf;
     size_t der_sz;
     const int *ciphersuites;
+    const mbedtls_ecp_group_id *curves;
 
     struct eventloop_slot_loop eventloop_cb;
     mender_time_t cb_next;
@@ -65,6 +66,6 @@ struct mender_http_transport_ssl {
 
 void mender_http_transport_ssl_create(struct mender_http_transport_ssl *ssl,
     struct mender_platform_eventloop *el, const void *der, size_t der_sz,
-    const int *ciphersuites);
+    const int *ciphersuites, const mbedtls_ecp_group_id *curves);
 
 #endif /* MENDER_PLATFORM_TRANSPORT_SSL_H */
