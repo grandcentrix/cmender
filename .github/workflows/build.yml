@@ -25,6 +25,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install \
+          clang-tools \
           libcmocka-dev \
           libhttp-parser-dev \
           libmbedtls-dev \
@@ -48,3 +49,9 @@ jobs:
         cd build
         make test ARGS="-V"
         make test_coverage
+
+    - name: static analysis
+      run: |
+        mkdir build-csa
+        scan-build cmake -S . -B build-csa -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=OFF -DCODE_COVERAGE=OFF
+        scan-build --status-bugs make -C build-csa
