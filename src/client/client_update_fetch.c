@@ -51,7 +51,7 @@ static void closed(void *ctx, struct mender_http_client *c,
             LOGW("Client not authorized to get update info.");
             cbret = MERR_CLIENT_UNAUTHORIZED;
         }
-        if (c->parser.status_code != HTTP_STATUS_OK) {
+        else if (c->parser.status_code != HTTP_STATUS_OK) {
             LOGE("Error fetching scheduled update info: code (%u)", c->parser.status_code);
             cbret = MERR_INVALID_HTTP_STATUS;
         }
