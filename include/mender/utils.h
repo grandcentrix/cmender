@@ -30,10 +30,20 @@ static inline int mender_isxdigit(int c) {
             (c >= 'A' && c <= 'F'));
 }
 
+static inline int mender_isletter(int c) {
+    return ((c >= 'a' && c <= 'z') ||
+            (c >= 'A' && c <= 'z'));
+}
+
 int mender_hex2int(int c);
 size_t mender_hex2bytes(const char *src, uint8_t *dst, size_t n);
 
 mender_err_t mender_json_encode_str_inplace(char *buf, size_t maxsz, size_t *pactual);
 mender_err_t mender_json_decode_str_inplace(char *buf, size_t sz, size_t *pnewsz);
+
+#ifdef CONFIG_MENDER_SEMVER
+/* Compare two semver version numbers */
+mender_err_t check_semver(const char *current_version, const char *new_version);
+#endif /* CONFIG_MENDER_SEMVER */
 
 #endif /* MENDER_UTILS_H */

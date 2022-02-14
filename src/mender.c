@@ -17,6 +17,7 @@
 #include <mender/mender.h>
 #include <mender/internal/compiler.h>
 #include <mender/platform/log.h>
+#include <mender/utils.h>
 
 #ifdef MENDER_ENABLE_TESTING
 #include <mender/test/mock/authmgr.h>
@@ -234,6 +235,23 @@ static void check_update_cb(void *ctx, mender_err_t err) {
         cbret = MERR_EXISTS;
         goto do_callback;
     }
+
+#ifdef CONFIG_MENDER_SEMVER
+    cbret = check_semver(mender->current_artifact_name, mender->check_ur->artifact_name);
+#ifdef CONFIG_MENDER_SEMVER_PREVENT_ROLLBACK
+    if (cbret == MERR_VERSION_OLD) {
+        LOGI("Attempting to upgrade to a older version, not performing upgrade.");
+        goto do_callback;
+    }
+#endif
+    if (cbret == MERR_VERSION_INVALID) {
+        LOGI("Version number is invalid, not performing upgrade.");
+        goto do_callback;
+    }
+    if (cbret == MERR_EXISTS) {
+        LOGI("Version number is the same, but the artifact name is not identical. Performing upgrade anyway.");
+    }
+#endif /* CONFIG_MENDER_SEMVER */
 
     cbret = MERR_NONE;
 

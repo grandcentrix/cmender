@@ -38,6 +38,10 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
+#ifndef MAX
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+
 #ifndef ROUNDUP
 #define ROUNDUP(a, b) (((a) + ((b)-1)) & ~((b)-1))
 #endif

@@ -38,6 +38,8 @@ typedef uint32_t mender_err_t;
 #define MERR_UNKNOWN 10
 #define MERR_BUFFER_TOO_SMALL 11
 #define MERR_TIMEOUT 12
+#define MERR_VERSION_INVALID 13
+#define MERR_VERSION_OLD 14
 
 /* state */
 #define MERR_UNSUPPORTED_STATE_DATA 20

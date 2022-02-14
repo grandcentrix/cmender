@@ -248,6 +248,133 @@ mender_err_t mender_json_decode_str_inplace(char *buf, size_t sz, size_t *pnewsz
     return MERR_NONE;
 }
 
+#ifdef CONFIG_MENDER_SEMVER
+mender_err_t check_semver(const char *current_version, const char *new_version) {
+    bool version_same = true;
+    bool version_higher = false;
+
+    bool local_version_higher;
+    bool local_version_same;
+    int state = 0;
+
+    size_t i = 0;
+    size_t j = 0;
+
+    ssize_t n;
+    ssize_t m;
+
+    while (new_version[j] && state < 3) {
+        /* major, minor and patch */
+
+        for (; current_version[i] && current_version[i] != '.'; i++) {
+            if (!mender_isdigit(current_version[i])) {
+                if (state == 2 && (current_version[i] == '-' || current_version[i] == '+')) {
+                    /* pre-release and build will follow */
+                    break;
+                }
+                /* Current version is not in semver format. Default to new version is newer */
+                goto end;
+            }
+        }
+        for (; new_version[j] && new_version[j] != '.'; j++) {
+            if (!mender_isdigit(new_version[j])) {
+                if (state == 2 && (new_version[j] == '-' || new_version[j] == '+')) {
+                    /* pre-release and build will follow */
+                    break;
+                }
+                /* New version is not in semver format, decline the update */
+                goto invalid;
+            }
+        }
+
+        local_version_higher = true;
+        local_version_same = true;
+        /* Compare version number from the back.
+         * Next higher position digit overwrites result from lower position, exept it
+         * matches between old and new version.
+         */
+        for (n = i - 1, m = j - 1; n >= 0 && m >= 0 && current_version[n] != '.'
+                                   && new_version[m] != '.'; n--, m--) {
+            if (new_version[m] > current_version[n]) {
+                local_version_higher = true;
+                local_version_same = false;
+            } else if (new_version[m] < current_version[n]) {
+                local_version_higher = false;
+                local_version_same = false;
+            }
+        }
+
+        /* If the current version is longer and the prefix does not consist from zeros,
+         * the current version is newer
+         */
+        for (; n >= 0 && current_version[n] != '.'; n--) {
+            if (current_version[n] != '0') {
+                local_version_higher = false;
+                local_version_same = false;
+            }
+        }
+        /* If the new version is longer and the prefix does not consist from zeros,
+         * the new version is newer
+         */
+        for (; m >= 0 && new_version[m] != '.'; m--) {
+            if (new_version[m] != '0') {
+                local_version_higher = true;
+                local_version_same = false;
+            }
+        }
+
+        /* If the current version number part is higher and all until now were the same,
+         * the overall version number is higher
+         */
+        if (local_version_higher && !local_version_same && version_same) {
+            version_higher = true;
+        }
+        if (!local_version_same) {
+            version_same = false;
+        }
+
+        if (state < 2) {
+            if (!current_version[i]) {
+                /* Current version is not in semver format. Default to new version is newer */
+                goto end;
+            }
+            if (!new_version[j]) {
+                /* New version is not in semver format, decline the update */
+                goto invalid;
+            }
+            i++;
+            j++;
+        }
+        state++;
+    }
+
+    /* We must got major, minor and patch version */
+    if (state != 3) {
+        goto invalid;
+    }
+
+    /* pre-release and build */
+    for (; new_version[j]; j++) {
+        if (!mender_isdigit(new_version[j]) && !mender_isletter(new_version[j]) &&
+            new_version[j] != '-' && new_version[j] != '+' && new_version[j] != '.') {
+            goto invalid;
+        }
+    }
+
+    if (!version_higher && !version_same) {
+        return MERR_VERSION_OLD;
+    }
+    if (version_same) {
+        return MERR_EXISTS;
+    }
+
+end:
+    return MERR_NONE;
+invalid:
+    return MERR_VERSION_INVALID;
+}
+#endif /* CONFIG_MENDER_SEMVER */
+
 #ifdef MENDER_ENABLE_TESTING
 #include "../tests/utils.c"
 #endif

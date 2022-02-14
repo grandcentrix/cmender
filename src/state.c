@@ -483,12 +483,18 @@ static void update_check_async_state_handle(struct mender_statemachine *sm) {
     mender_err_t err = sm->last_error;
 
     if (err) {
-        if (MENDER_ERR_VAL(err) == MERR_EXISTS) {
+        if (MENDER_ERR_VAL(err) == MERR_EXISTS || MENDER_ERR_VAL(err) == MERR_VERSION_OLD) {
             /*
-             * We are already running image which we are supposed to install.
+             * We are already running image which we are supposed to install or a newer one.
              * Just report successful update and return to normal operations.
              */
             sm->deployment_status = MENDER_DEPLOYMENT_STATUS_ALREADY_INSTALLED;
+            sm->current_state = MENDER_STATE_UPDATE_STATUS_REPORT;
+            return;
+        }
+
+        if (MENDER_ERR_VAL(err) == MERR_VERSION_INVALID) {
+            sm->deployment_status = MENDER_DEPLOYMENT_STATUS_FAILURE;
             sm->current_state = MENDER_STATE_UPDATE_STATUS_REPORT;
             return;
         }
