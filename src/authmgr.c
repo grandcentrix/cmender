@@ -43,6 +43,7 @@ mender_err_t mender_authmgr_generate_authdata(struct mender_authmgr *am,
     const char *sig;
     size_t siglen;
     const char *keytype = NULL;
+    const char *dummy_token = "dummy";
 
     merr = mender_keystore_get_keytype(am->keystore, &keytype);
     if (merr) {
@@ -52,7 +53,7 @@ mender_err_t mender_authmgr_generate_authdata(struct mender_authmgr *am,
 
     /* get default token */
     token = buf + pos;
-    rc = snprintf(buf + pos, bufsz - pos, "dummy");
+    rc = snprintf(buf + pos, bufsz - pos, "%s", dummy_token);
     if (rc < 0 || rc >= (ssize_t)(bufsz - pos))
         return MERR_BUFFER_TOO_SMALL;
     tokenlen = (size_t)rc;
@@ -81,7 +82,7 @@ mender_err_t mender_authmgr_generate_authdata(struct mender_authmgr *am,
         return MERR_BUFFER_TOO_SMALL;
     pos += rc;
 
-    rc = snprintf(buf + pos, bufsz - pos, "%s", token);
+    rc = snprintf(buf + pos, bufsz - pos, "%s", dummy_token);
     if (rc < 0 || rc >= (ssize_t)(bufsz - pos))
         return MERR_BUFFER_TOO_SMALL;
 
