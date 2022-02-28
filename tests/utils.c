@@ -196,11 +196,63 @@ static void test_utils_json_decode(void **state __unused) {
     }
 }
 
+static void test_check_semver(void **state __unused) {
+   mender_err_t res;
+
+   struct check_semver_case {
+       char *current;
+       char *new;
+       mender_err_t result;
+   };
+
+   const struct check_semver_case check_semver_cases[] = {
+       { "0.0.0", "0.0.0", MERR_EXISTS },
+
+       { "0.0.1", "0.0.0", MERR_VERSION_OLD },
+       { "0.1.0", "0.0.0", MERR_VERSION_OLD },
+       { "1.0.0", "0.0.0", MERR_VERSION_OLD },
+       { "0.1.0", "0.0.1", MERR_VERSION_OLD },
+       { "1.0.0", "0.1.0", MERR_VERSION_OLD },
+       { "1.0.0", "0.1.1", MERR_VERSION_OLD },
+
+       { "0.0.0", "0.0.1", MERR_NONE },
+       { "0.0.0", "0.1.0", MERR_NONE },
+       { "0.0.1", "0.1.0", MERR_NONE },
+       { "0.0.0", "1.0.0", MERR_NONE },
+       { "0.0.1", "1.0.0", MERR_NONE },
+       { "0.1.0", "1.0.0", MERR_NONE },
+       { "0.1.1", "1.0.0", MERR_NONE },
+
+       { "0.1.1", "1.0.0-alpha", MERR_NONE },
+       { "0.1.1", "1.0.0-alpha+161dea", MERR_NONE },
+       { "0.1.1-alpha", "1.0.0", MERR_NONE },
+       { "0.1.1-alpha+161dea", "1.0.0", MERR_NONE },
+
+       { "1.0.0-alpha", "0.1.1", MERR_VERSION_OLD },
+       { "1.0.0-alpha+161dea", "0.1.1", MERR_VERSION_OLD },
+       { "1.0.0", "0.1.1-alpha", MERR_VERSION_OLD },
+       { "1.0.0", "0.1.1-alpha+161dea", MERR_VERSION_OLD },
+
+       { "1.0.0", "-alpha+161dea", MERR_VERSION_INVALID },
+       { "1.0.0", "fake-artifact", MERR_VERSION_INVALID },
+   };
+
+   for (size_t i = 0; i < ARRAY_SIZE(check_semver_cases); i++) {
+       LOGD("check_semver(\"%s\", \"%s\") == %d",
+               check_semver_cases[i].current,
+               check_semver_cases[i].new,
+               check_semver_cases[i].result);
+       res = check_semver(check_semver_cases[i].current, check_semver_cases[i].new);
+       assert_int_equal(res, check_semver_cases[i].result);
+   }
+}
+
 static const struct CMUnitTest tests_utils[] = {
     cmocka_unit_test(test_utils_isdigit),
     cmocka_unit_test(test_utils_isxdigit),
     cmocka_unit_test(test_utils_json_encode),
     cmocka_unit_test(test_utils_json_decode),
+    cmocka_unit_test(test_check_semver),
 };
 
 int mender_test_run_utils(void) {

@@ -59,6 +59,8 @@ add_definitions(
 if (ENABLE_TESTING MATCHES ON)
 add_definitions(
     -DMENDER_ENABLE_TESTING
+    -DCONFIG_MENDER_SEMVER
+    -DCONFIG_MENDER_SEMVER_PREVENT_ROLLBACK
 )
 add_subdirectory(tests)
 endif()

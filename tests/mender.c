@@ -27,7 +27,12 @@ static struct mender mender_instance;
 #define fake_device ((struct mender_device*)0xBAAAAAAD)
 #define fake_inventroy ((struct mender_inventory_data*)0xBAD22222)
 
-static const char *fake_current_artifact_name = "fake-artifact";
+#define FAKE_OLD_ARTIFACT_NAME "0.5.1"
+#define FAKE_CURRENT_ARTIFACT_NAME "1.2.0"
+#define FAKE_NEW_ARTIFACT_NAME "1.3.0"
+#define FAKE_NONSEMVER_ARTIFACT_NAME "fake-artifact"
+
+static const char *fake_current_artifact_name = FAKE_CURRENT_ARTIFACT_NAME;
 static const char *fake_device_type = "fake-device";
 static const char *fake_server_url = "https://fake-server.tld";
 static const mender_duration_t fake_duration = 1337;
@@ -202,15 +207,37 @@ static void test_mender_check_update_cb(void **state __unused) {
     expect_cb((void*)0xbaadc0de, MERR_NOT_FOUND);
     check_update_cb((void*)&mender_instance, MERR_NOT_FOUND);
 
+    // Got artifact with non-semver name
+    setup_mender();
+    mender_instance.cb = cb;
+    mender_instance.cbctx = (void*)0xbaadc0de;
+    mender_instance.check_ur = &((struct mender_update_response){
+            .artifact_name = FAKE_NONSEMVER_ARTIFACT_NAME,
+            .id = "fake-response"
+            });
+    expect_cb((void*)0xbaadc0de, MERR_VERSION_INVALID);
+    check_update_cb((void*)&mender_instance, MERR_NONE);
+
     // Got already installed artifact
     setup_mender();
     mender_instance.cb = cb;
     mender_instance.cbctx = (void*)0xbaadc0de;
     mender_instance.check_ur = &((struct mender_update_response){
-            .artifact_name = "fake-artifact",
+            .artifact_name = FAKE_CURRENT_ARTIFACT_NAME,
             .id = "fake-response"
             });
     expect_cb((void*)0xbaadc0de, MERR_EXISTS);
+    check_update_cb((void*)&mender_instance, MERR_NONE);
+
+    // Got older artifact
+    setup_mender();
+    mender_instance.cb = cb;
+    mender_instance.cbctx = (void*)0xbaadc0de;
+    mender_instance.check_ur = &((struct mender_update_response){
+            .artifact_name = FAKE_OLD_ARTIFACT_NAME,
+            .id = "fake-response"
+            });
+    expect_cb((void*)0xbaadc0de, MERR_VERSION_OLD);
     check_update_cb((void*)&mender_instance, MERR_NONE);
 
     // Got new artifact
@@ -218,7 +245,7 @@ static void test_mender_check_update_cb(void **state __unused) {
     mender_instance.cb = cb;
     mender_instance.cbctx = (void*)0xbaadc0de;
     mender_instance.check_ur = &((struct mender_update_response){
-            .artifact_name = "new-artifact",
+            .artifact_name = FAKE_NEW_ARTIFACT_NAME,
             .id = "fake-response"
             });
     expect_cb((void*)0xbaadc0de, MERR_NONE);
