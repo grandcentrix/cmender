@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 grandcentrix GmbH
+ * Copyright (C) 2022 grandcentrix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@
 int mender_run_all_tests(void) {
     int ret = 0;
     int rc;
+
+    rc = mender_test_run_authmgr();
+    if (rc)
+        ret = -1;
 
     rc = mender_test_run_state();
     if (rc)

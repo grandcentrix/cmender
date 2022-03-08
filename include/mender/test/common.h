@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 grandcentrix GmbH
+ * Copyright (C) 2022 grandcentrix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
+int mender_test_run_authmgr(void);
 int mender_test_run_state(void);
 int mender_test_run_installer(void);
 int mender_test_run_stack(void);

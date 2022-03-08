@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 grandcentrix GmbH
+ * Copyright (C) 2022 grandcentrix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,12 @@
 #include <mender/internal/compiler.h>
 #include <mender/utils.h>
 #include <mender/platform/log.h>
+
+#ifdef MENDER_ENABLE_TESTING
+#include <mender/test/mock/store.h>
+#include <mender/test/mock/keystore.h>
+#include <mender/test/mock/identity_data.h>
+#endif
 
 static const char *auth_token_name = "authtoken";
 
@@ -226,3 +232,7 @@ mender_err_t mender_authmgr_get_token(struct mender_authmgr *am,
 
     return merr;
 }
+
+#ifdef MENDER_ENABLE_TESTING
+#include "../tests/authmgr.c"
+#endif

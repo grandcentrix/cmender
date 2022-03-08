@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 grandcentrix GmbH
+ * Copyright (C) 2022 grandcentrix GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ int mender_mocking_enabled = 0;
 int mender_device_mocking_enabled = 0;
 int mender_time_mocking_enabled = 0;
 int mender_store_mocking_enabled = 0;
+int mender_keystore_mocking_enabled = 0;
+int mender_identity_data_mocking_enabled = 0;
 int mender_authmgr_mocking_enabled = 0;
 int mender_client_auth_mocking_enabled = 0;
 int mender_client_update_mocking_enabled = 0;
