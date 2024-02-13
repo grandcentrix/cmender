@@ -75,7 +75,12 @@ make
 
 ### One-time setup
 
-* Build the client
+* Build the client, or build container image when running macOS (container image only tested on intel macs):
+
+```bash
+docker build -t cmender-test-tool .
+```
+
 * Create menderstore directory:
 
 ```bash
@@ -104,6 +109,12 @@ start the test client with the following command and display the help:
 
 ```bash
 ./platform/linux/test_tool/test_tool -h
+```
+
+Or via docker:
+
+```bash
+docker run -v ./data:/data cmender-test-tool -h
 ```
 
 After a deployment the test tool exits instead of a reboot a real device
