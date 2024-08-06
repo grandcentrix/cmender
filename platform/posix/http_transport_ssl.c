@@ -101,9 +101,12 @@ static void ssl_handshake_start(struct mender_http_transport_ssl *ssl) {
     if (ssl->ciphersuites) {
         mbedtls_ssl_conf_ciphersuites(&ssl->conf, ssl->ciphersuites);
     }
-
+    uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1,
+                                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1,
+                                       MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+                                       MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
     if (ssl->curves) {
-        mbedtls_ssl_conf_curves(&ssl->conf, ssl->curves);
+        mbedtls_ssl_conf_groups(&ssl->conf, iana_tls_group_list);
     }
 
     if (ssl->der_buf) {

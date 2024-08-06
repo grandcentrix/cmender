@@ -27,7 +27,6 @@
 #include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/error.h>
-#include <mbedtls/certs.h>
 
 enum mender_http_transport_ssl_state {
     MENDER_HTTP_TRANSPORT_SSL_STATE_READY,
